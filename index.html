@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packaging Catalog</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+        
+        // ============================================
+        // CONFIGURATION - UPDATE THESE VALUES
+        // ============================================
+        const CONFIG = {
+          // Your Google Sheet ID (from the URL)
+          // Example: https://docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit
+          GOOGLE_SHEET_ID: 'YOUR_GOOGLE_SHEET_ID_HERE',
+          
+          // Your password
+          PASSWORD: 'packaging2024',
+          
+          // Base URL for images (Google Drive folder or other hosting)
+          // Images will be loaded as: {IMAGE_BASE_URL}/{factory}/{itemNumber}.jpg
+          // Example: "https://drive.google.com/uc?export=view&id=FOLDER_ID"
+          IMAGE_BASE_URL: 'https://your-image-host.com',
+          
+          // Image file extension
+          IMAGE_EXTENSION: '.jpg',
+          
+          // Factory folder mapping (customize based on your suppliers/factories)
+          // This maps supplier names to folder names
+          FACTORY_FOLDERS: {
+            'Supplier A': 'factory-a',
+            'Supplier B': 'factory-b',
+            'Supplier C': 'factory-c',
+            // Add more as needed
+          }
+        };
+        // ============================================
+        
+        const PackagingCatalog = () => {
+          const [isAuthenticated, setIsAuthenticated] = useState(false);
+          const [password, setPassword] = useState('');
+          const [searchTerm, setSearchTerm] = useState('');
+          const [selectedCategory, setSelectedCategory] = useState('all');
+          const [selectedSupplier, setSelectedSupplier] = useState('all');
+          const [showFilters, setShowFilters] = useState(false);
+          const [products, setProducts] = useState([]);
+          const [loading, setLoading] = useState(true);
+          const [error, setError] = useState('');
+          const [lastUpdated, setLastUpdated] = useState(null);
+
+          // Load products from Google Sheets
+          useEffect(() => {
+            const loadProductsFromSheet = async () => {
+              if (!isAuthenticated) return;
+              
+              try {
+                setLoading(true);
+                setError('');
+                
+                // Construct Google Sheets CSV export URL
+                const sheetUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.GOOGLE_SHEET_ID}/export?format=csv`;
+                
+                const response = await fetch(sheetUrl);
+                if (!response.ok) {
+                  throw new Error('Failed to load sheet. Make sure it\'s published to web!');
+                }
+                
+                const csvText = await response.text();
+                
+                // Parse CSV using PapaParse
+                Papa.parse(csvText, {
+                  header: true,
+                  skipEmptyLines: true,
+                  complete: (results) => {
+                    const parsedProducts = results.data.map((row, index) => {
+                      // Get factory folder from supplier mapping
+                      const factoryFolder = CONFIG.FACTORY_FOLDERS[row.supplier] || 'default';
+                      
+                      // Construct image URL
+                      const imageUrl = row.image || 
+                        `${CONFIG.IMAGE_BASE_URL}/${factoryFolder}/${row.itemNumber}${CONFIG.IMAGE_EXTENSION}`;
+                      
+                      return {
+                        id: row.id || row.itemNumber || `product-${index}`,
+                        itemNumber: row.itemNumber || '',
+                        name: row.name || '',
+                        category: row.category || '',
+                        supplier: row.supplier || '',
+                        description: row.description || '',
+                        volume: row.volume || '',
+                        size: row.size || '',
+                        material: row.material || '',
+                        color: row.color || '',
+                        image: imageUrl,
+                        link: row.link || '#'
+                      };
+                    });
+                    
+                    setProducts(parsedProducts);
+                    setLastUpdated(new Date());
+                    setError('');
+                  },
+                  error: (error) => {
+                    console.error('Parse error:', error);
+                    setError('Error parsing sheet data');
+                  }
+                });
+                
+              } catch (err) {
+                console.error('Error loading products:', err);
+                setError(err.message);
+                setProducts([]);
+              } finally {
+                setLoading(false);
+              }
+            };
+
+            if (isAuthenticated) {
+              loadProductsFromSheet();
+            }
+          }, [isAuthenticated]);
+
+          const handleLogin = () => {
+            if (password.trim() === CONFIG.PASSWORD) {
+              setIsAuthenticated(true);
+              setPassword('');
+            } else {
+              alert('Incorrect password');
+              setPassword('');
+            }
+          };
+
+          const refreshData = async () => {
+            setLoading(true);
+            // Trigger reload by toggling auth state
+            const wasAuth = isAuthenticated;
+            setIsAuthenticated(false);
+            setTimeout(() => setIsAuthenticated(wasAuth), 100);
+          };
+
+          const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
+          const suppliers = ['all', ...new Set(products.map(p => p.supplier).filter(Boolean))];
+
+          const filteredProducts = useMemo(() => {
+            return products.filter(product => {
+              const matchesSearch = !searchTerm || 
+                product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.itemNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+              const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+              const matchesSupplier = selectedSupplier === 'all' || product.supplier === selectedSupplier;
+              return matchesSearch && matchesCategory && matchesSupplier;
+            });
+          }, [searchTerm, selectedCategory, selectedSupplier, products]);
+
+          if (!isAuthenticated) {
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+                  <div className="flex justify-center mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-3xl font-bold">P</div>
+                  </div>
+                  <h2 className="text-2xl font-bold text-center mb-2">Packaging Catalog</h2>
+                  <p className="text-center text-gray-600 mb-6">Enter password to access</p>
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                    onKeyPress={e => e.key === 'Enter' && handleLogin()}
+                    placeholder="Password" className="w-full px-4 py-3 border rounded-lg mb-4" autoFocus />
+                  <button onClick={handleLogin} className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-pink-600 hover:to-purple-700">Login</button>
+                </div>
+              </div>
+            );
+          }
+
+          if (loading) {
+            return (
+              <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading products from Google Sheets...</p>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="min-h-screen bg-gray-50">
+              <header className="bg-white border-b sticky top-0 z-10">
+                <div className="max-w-7xl mx-auto px-4 py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg text-white font-bold flex items-center justify-center">P</div>
+                      <div>
+                        <h1 className="text-2xl font-bold">Packaging Catalog</h1>
+                        {lastUpdated && (
+                          <p className="text-xs text-gray-500">
+                            Last updated: {lastUpdated.toLocaleTimeString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button onClick={refreshData} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition">
+                        Refresh
+                      </button>
+                      <button onClick={() => setShowFilters(!showFilters)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                        {showFilters ? 'Hide Filters' : 'Show Filters'}
+                      </button>
+                      <button onClick={() => setIsAuthenticated(false)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition">Logout</button>
+                    </div>
+                  </div>
+                </div>
+              </header>
+
+              {error && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 mx-4 mt-4">
+                  <div className="flex items-start">
+                    <div className="flex-1">
+                      <p className="text-red-700 font-medium">Error loading data</p>
+                      <p className="text-red-600 text-sm mt-1">{error}</p>
+                      <p className="text-red-600 text-sm mt-2">
+                        Make sure your Google Sheet is published to web:
+                        <br />File → Share → Publish to web → Publish
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-white border-b">
+                <div className="max-w-7xl mx-auto px-4 py-4">
+                  <input type="text" placeholder="Search by item number, name, or description..." 
+                    value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500" />
+                  
+                  {showFilters && (
+                    <div className="mt-4 grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} 
+                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
+                          {categories.map(c => <option key={c} value={c}>{c === 'all' ? 'All Categories' : c}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Supplier / Factory</label>
+                        <select value={selectedSupplier} onChange={e => setSelectedSupplier(e.target.value)} 
+                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
+                          {suppliers.map(s => <option key={s} value={s}>{s === 'all' ? 'All Suppliers' : s}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {(selectedCategory !== 'all' || selectedSupplier !== 'all') && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {selectedCategory !== 'all' && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+                          {selectedCategory}
+                          <button onClick={() => setSelectedCategory('all')} className="ml-2 hover:text-purple-900">✕</button>
+                        </span>
+                      )}
+                      {selectedSupplier !== 'all' && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-pink-100 text-pink-800">
+                          {selectedSupplier}
+                          <button onClick={() => setSelectedSupplier('all')} className="ml-2 hover:text-pink-900">✕</button>
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="max-w-7xl mx-auto px-4 py-4">
+                <p className="text-gray-600">Showing {filteredProducts.length} of {products.length} items</p>
+              </div>
+
+              <main className="max-w-7xl mx-auto px-4 pb-12">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {filteredProducts.map(p => (
+                    <div key={p.id} className="bg-white rounded-lg shadow hover:shadow-md transition">
+                      <div className="aspect-square bg-gray-100 overflow-hidden rounded-t-lg">
+                        <img src={p.image} 
+                          alt={p.name} 
+                          className="w-full h-full object-cover"
+                          onError={e => e.target.src = 'https://via.placeholder.com/400?text=No+Image'} />
+                      </div>
+                      <div className="p-4">
+                        <div className="flex justify-between mb-2">
+                          <h3 className="font-semibold text-gray-900">{p.name}</h3>
+                          <span className="text-xs text-gray-500">{p.itemNumber}</span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{p.description}</p>
+                        <div className="space-y-1 text-sm">
+                          {p.category && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Category:</span>
+                              <span className="font-medium">{p.category}</span>
+                            </div>
+                          )}
+                          {p.supplier && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Supplier:</span>
+                              <span className="font-medium">{p.supplier}</span>
+                            </div>
+                          )}
+                          {p.volume && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Volume:</span>
+                              <span className="font-medium">{p.volume}</span>
+                            </div>
+                          )}
+                          {p.size && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Size:</span>
+                              <span className="font-medium">{p.size}</span>
+                            </div>
+                          )}
+                          {p.material && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Material:</span>
+                              <span className="font-medium">{p.material}</span>
+                            </div>
+                          )}
+                          {p.color && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Color:</span>
+                              <span className="font-medium">{p.color}</span>
+                            </div>
+                          )}
+                        </div>
+                        {p.link && p.link !== '#' && (
+                          <a href={p.link} target="_blank" rel="noopener noreferrer"
+                            className="mt-4 block w-full text-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition text-sm font-medium">
+                            View Details
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {filteredProducts.length === 0 && !loading && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 text-lg mb-4">No products found matching your criteria.</p>
+                    <button onClick={() => { setSearchTerm(''); setSelectedCategory('all'); setSelectedSupplier('all'); }}
+                      className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition">
+                      Clear All Filters
+                    </button>
+                  </div>
+                )}
+              </main>
+
+              <footer className="bg-white border-t mt-12 py-6">
+                <div className="max-w-7xl mx-auto px-4 text-center text-gray-600 text-sm">
+                  <p>🔄 Data syncs automatically from Google Sheets</p>
+                  <p className="mt-1">Click "Refresh" to load the latest updates</p>
+                </div>
+              </footer>
+            </div>
+          );
+        };
+
+        ReactDOM.render(<PackagingCatalog />, document.getElementById('root'));
+    </script>
+</body>
+</html>
