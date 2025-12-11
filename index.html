@@ -25,7 +25,7 @@
           GOOGLE_SHEET_ID: '17loO452it-qoRcwNKp5nbZg0exuBRZt794sTOmrkwEY',
           
           // Your password
-          PASSWORD: 'test',
+          PASSWORD: 'testck',
           
           // Base URL for images (Google Drive folder or other hosting)
           // Images will be loaded as: {IMAGE_BASE_URL}/{factory}/{itemNumber}.jpg
@@ -47,7 +47,15 @@
         // ============================================
         
         const PackagingCatalog = () => {
-          const [isAuthenticated, setIsAuthenticated] = useState(false);
+          const [isAuthenticated, setIsAuthenticated] = useState(() => {
+            // Check if authenticated within the last hour
+            const authTime = localStorage.getItem('authTime');
+            if (authTime) {
+              const hoursSinceAuth = (Date.now() - parseInt(authTime)) / (1000 * 60 * 60);
+              return hoursSinceAuth < 1; // Less than 1 hour
+            }
+            return false;
+          });
           const [password, setPassword] = useState('');
           const [searchTerm, setSearchTerm] = useState('');
           const [selectedCategory, setSelectedCategory] = useState('all');
@@ -133,6 +141,7 @@
           const handleLogin = () => {
             if (password.trim() === CONFIG.PASSWORD) {
               setIsAuthenticated(true);
+              localStorage.setItem('authTime', Date.now().toString());
               setPassword('');
             } else {
               alert('Incorrect password');
@@ -215,7 +224,10 @@
                       <button onClick={() => setShowFilters(!showFilters)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
                         {showFilters ? 'Hide Filters' : 'Show Filters'}
                       </button>
-                      <button onClick={() => setIsAuthenticated(false)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition">Logout</button>
+                      <button onClick={() => {
+                        setIsAuthenticated(false);
+                        localStorage.removeItem('authTime');
+                      }} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition">Logout</button>
                     </div>
                   </div>
                 </div>
