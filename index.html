@@ -21,27 +21,22 @@
         // ============================================
         const CONFIG = {
           // Your Google Sheet ID (from the URL)
-          // Example: https://docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit
           GOOGLE_SHEET_ID: '17loO452it-qoRcwNKp5nbZg0exuBRZt794sTOmrkwEY',
           
           // Your password
           PASSWORD: 'testck',
           
-          // Base URL for images (Google Drive folder or other hosting)
-          // Images will be loaded as: {IMAGE_BASE_URL}/{factory}/{itemNumber}.jpg
-          // Example: "https://drive.google.com/uc?export=view&id=FOLDER_ID"
-          IMAGE_BASE_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/images/',
+          // Base URL for images
+          IMAGE_BASE_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/images',
           
           // Image file extension
           IMAGE_EXTENSION: '.png',
           
-          // Factory folder mapping (customize based on your suppliers/factories)
-          // This maps supplier names to folder names
+          // Factory folder mapping
           FACTORY_FOLDERS: {
             'Taesung': 'taesung',
-            'Supplier B': 'factory-b',
-            'Supplier C': 'factory-c',
-            // Add more as needed
+            // Add more factories as you create folders:
+            // 'Factory Name': 'folder-name',
           }
         };
         // ============================================
@@ -325,11 +320,11 @@
               <main className="max-w-7xl mx-auto px-4 pb-12">
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {filteredProducts.map(p => (
-                    <div key={p.id} className="bg-white rounded-lg shadow hover:shadow-md transition">
-                      <div className="aspect-square bg-gray-100 overflow-hidden rounded-t-lg">
+                    <div key={p.id} className="bg-white rounded-lg shadow hover:shadow-md transition overflow-hidden">
+                      <div className="bg-gray-50 overflow-hidden rounded-t-lg flex items-center justify-center" style={{ height: '300px' }}>
                         <img src={p.image} 
                           alt={p.name} 
-                          className="w-full h-full object-cover"
+                          className="max-w-full max-h-full object-contain p-4"
                           onError={e => e.target.src = 'https://via.placeholder.com/400?text=No+Image'} />
                       </div>
                       <div className="p-4">
