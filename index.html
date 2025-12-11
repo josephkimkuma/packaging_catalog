@@ -22,23 +22,23 @@
         const CONFIG = {
           // Your Google Sheet ID (from the URL)
           // Example: https://docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit
-          GOOGLE_SHEET_ID: '17loO452it-qoRcwNKp5nbZg0exuBRZt794sTOmrkwEY',
+          GOOGLE_SHEET_ID: 'YOUR_GOOGLE_SHEET_ID_HERE',
           
           // Your password
-          PASSWORD: 'testck',
+          PASSWORD: 'packaging2024',
           
           // Base URL for images (Google Drive folder or other hosting)
           // Images will be loaded as: {IMAGE_BASE_URL}/{factory}/{itemNumber}.jpg
           // Example: "https://drive.google.com/uc?export=view&id=FOLDER_ID"
-          IMAGE_BASE_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/images',       
-            
+          IMAGE_BASE_URL: 'https://your-image-host.com',
+          
           // Image file extension
-          IMAGE_EXTENSION: '.png',
+          IMAGE_EXTENSION: '.jpg',
           
           // Factory folder mapping (customize based on your suppliers/factories)
           // This maps supplier names to folder names
           FACTORY_FOLDERS: {
-            'taesung': 'Taesung',
+            'Supplier A': 'factory-a',
             'Supplier B': 'factory-b',
             'Supplier C': 'factory-c',
             // Add more as needed
@@ -92,18 +92,27 @@
                   complete: (results) => {
                     const parsedProducts = results.data.map((row, index) => {
                       // Map your Excel columns to catalog fields
-                      const itemNumber = row['Item #'] || row.itemNumber || '';
-                      const factoryName = row['Factory name'] || row.supplier || '';
+                      // Try multiple possible column name variations
+                      const itemNumber = row['Item #'] || row['Item#'] || row.itemNumber || '';
+                      const factoryName = row['Factory name'] || row['Factory Name'] || row['FactoryName'] || row['Factory_name'] || row.supplier || '';
                       const category = row['Category'] || row.category || '';
                       const component = row['Component'] || '';
-                      const fillVolume = row['Fill volume'] || row.volume || '';
-                      const factoryLocation = row['Factory location'] || '';
+                      const fillVolume = row['Fill volume'] || row['Fill Volume'] || row['FillVolume'] || row.volume || '';
+                      const factoryLocation = row['Factory location'] || row['Factory Location'] || '';
                       const shape = row['Shape'] || '';
                       const material = row['Material'] || '';
                       const imageValue = row['Image'] || '';
                       
+                      // Debug logging
+                      if (index === 0) {
+                        console.log('First row data:', row);
+                        console.log('Item Number:', itemNumber);
+                        console.log('Factory Name:', factoryName);
+                        console.log('Available columns:', Object.keys(row));
+                      }
+                      
                       // Get factory folder from factory name mapping
-                      const factoryFolder = CONFIG.FACTORY_FOLDERS[factoryName] || 'default';
+                      const factoryFolder = CONFIG.FACTORY_FOLDERS[factoryName] || CONFIG.FACTORY_FOLDERS[factoryName.trim()] || 'default';
                       
                       // Construct image URL (from Image column or auto-generate)
                       const imageUrl = imageValue || 
