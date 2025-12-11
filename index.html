@@ -22,15 +22,15 @@
         const CONFIG = {
           // Your Google Sheet ID (from the URL)
           // Example: https://docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit
-          GOOGLE_SHEET_ID: '17loO452it-qoRcwNKp5nbZg0exuBRZt794sTOmrkwEY',
+          GOOGLE_SHEET_ID: 'YOUR_GOOGLE_SHEET_ID_HERE',
           
           // Your password
-          PASSWORD: 'testck',
+          PASSWORD: 'packaging2024',
           
           // Base URL for images (Google Drive folder or other hosting)
           // Images will be loaded as: {IMAGE_BASE_URL}/{factory}/{itemNumber}.jpg
           // Example: "https://drive.google.com/uc?export=view&id=FOLDER_ID"
-          IMAGE_BASE_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/images',
+          IMAGE_BASE_URL: 'https://your-image-host.com',
           
           // Image file extension
           IMAGE_EXTENSION: '.jpg',
@@ -86,31 +86,48 @@
                 const csvText = await response.text();
                 
                 // Parse CSV using PapaParse
-                Papa.parse(csvText, {
+                                  Papa.parse(csvText, {
                   header: true,
                   skipEmptyLines: true,
                   complete: (results) => {
                     const parsedProducts = results.data.map((row, index) => {
-                      // Get factory folder from supplier mapping
-                      const factoryFolder = CONFIG.FACTORY_FOLDERS[row.supplier] || 'default';
+                      // Map your Excel columns to catalog fields
+                      const itemNumber = row['Item #'] || row.itemNumber || '';
+                      const factoryName = row['Factory name'] || row.supplier || '';
+                      const category = row['Category'] || row.category || '';
+                      const component = row['Component'] || '';
+                      const fillVolume = row['Fill volume'] || row.volume || '';
+                      const factoryLocation = row['Factory location'] || '';
+                      const shape = row['Shape'] || '';
+                      const material = row['Material'] || '';
+                      const imageValue = row['Image'] || '';
                       
-                      // Construct image URL
-                      const imageUrl = row.image || 
-                        `${CONFIG.IMAGE_BASE_URL}/${factoryFolder}/${row.itemNumber}${CONFIG.IMAGE_EXTENSION}`;
+                      // Get factory folder from factory name mapping
+                      const factoryFolder = CONFIG.FACTORY_FOLDERS[factoryName] || 'default';
+                      
+                      // Construct image URL (from Image column or auto-generate)
+                      const imageUrl = imageValue || 
+                        `${CONFIG.IMAGE_BASE_URL}/${factoryFolder}/${itemNumber}${CONFIG.IMAGE_EXTENSION}`;
+                      
+                      // Build description from Component
+                      const description = component;
                       
                       return {
-                        id: row.id || row.itemNumber || `product-${index}`,
-                        itemNumber: row.itemNumber || '',
-                        name: row.name || '',
-                        category: row.category || '',
-                        supplier: row.supplier || '',
-                        description: row.description || '',
-                        volume: row.volume || '',
-                        size: row.size || '',
-                        material: row.material || '',
-                        color: row.color || '',
+                        id: itemNumber || `product-${index}`,
+                        itemNumber: itemNumber,
+                        name: component,
+                        category: category,
+                        supplier: factoryName,
+                        description: description,
+                        volume: fillVolume,
+                        size: shape,
+                        material: material,
+                        color: factoryLocation,
                         image: imageUrl,
-                        link: row.link || '#'
+                        link: '#',
+                        // Store original fields for display
+                        factoryLocation: factoryLocation,
+                        shape: shape
                       };
                     });
                     
@@ -264,10 +281,10 @@
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Supplier / Factory</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Factory</label>
                         <select value={selectedSupplier} onChange={e => setSelectedSupplier(e.target.value)} 
                           className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
-                          {suppliers.map(s => <option key={s} value={s}>{s === 'all' ? 'All Suppliers' : s}</option>)}
+                          {suppliers.map(s => <option key={s} value={s}>{s === 'all' ? 'All Factories' : s}</option>)}
                         </select>
                       </div>
                     </div>
@@ -321,32 +338,32 @@
                           )}
                           {p.supplier && (
                             <div className="flex justify-between">
-                              <span className="text-gray-500">Supplier:</span>
+                              <span className="text-gray-500">Factory:</span>
                               <span className="font-medium">{p.supplier}</span>
+                            </div>
+                          )}
+                          {p.factoryLocation && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Location:</span>
+                              <span className="font-medium">{p.factoryLocation}</span>
                             </div>
                           )}
                           {p.volume && (
                             <div className="flex justify-between">
-                              <span className="text-gray-500">Volume:</span>
+                              <span className="text-gray-500">Fill Volume:</span>
                               <span className="font-medium">{p.volume}</span>
                             </div>
                           )}
-                          {p.size && (
+                          {p.shape && (
                             <div className="flex justify-between">
-                              <span className="text-gray-500">Size:</span>
-                              <span className="font-medium">{p.size}</span>
+                              <span className="text-gray-500">Shape:</span>
+                              <span className="font-medium">{p.shape}</span>
                             </div>
                           )}
                           {p.material && (
                             <div className="flex justify-between">
                               <span className="text-gray-500">Material:</span>
                               <span className="font-medium">{p.material}</span>
-                            </div>
-                          )}
-                          {p.color && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Color:</span>
-                              <span className="font-medium">{p.color}</span>
                             </div>
                           )}
                         </div>
