@@ -15,6 +15,7 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; 
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        background: white;
       }
       .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
       .sidebar { width: 220px; flex-shrink: 0; }
@@ -34,14 +35,18 @@
       .product-card:hover { background-color: #fafafa; }
       .product-image { 
         height: 250px; 
-        background: #fafafa; 
+        background: white; 
         display: flex; 
         align-items: center; 
         justify-content: center; 
         padding: 20px; 
         flex-shrink: 0;
       }
-      .product-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
+      .product-image img { 
+        max-width: 100%; 
+        max-height: 100%; 
+        object-fit: contain;
+      }
       .filter-group { margin-bottom: 28px; }
       .filter-group-scrollable { max-height: 200px; overflow-y: auto; margin-top: 8px; padding-right: 8px; }
       .filter-group-scrollable::-webkit-scrollbar { width: 4px; }
@@ -267,7 +272,7 @@
 
           if (!isAuthenticated) {
             return (
-              <div className="login-container">
+              <div className="login-container" style={{ background: 'white' }}>
                 <div className="login-box">
                   <h2 className="logo" style={{ marginBottom: '32px' }}>Packaging Catalog</h2>
                   <input 
@@ -287,7 +292,7 @@
 
           if (loading) {
             return (
-              <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa' }}>
+              <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white' }}>
                 <div style={{ textAlign: 'center', color: '#666' }}>Loading...</div>
               </div>
             );
