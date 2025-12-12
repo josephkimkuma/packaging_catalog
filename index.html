@@ -33,6 +33,7 @@
       .dark-mode .product-card:hover { background-color: #222; }
       .dark-mode .product-image { background: #fff; }
       .dark-mode .product-info { background: #1a1a1a; }
+      .dark-mode .factory-badge { background: rgba(255, 255, 255, 0.9); color: #000; }
       .dark-mode .product-name { color: #fff; }
       .dark-mode .product-component { color: #ccc; }
       .dark-mode .product-meta { color: #999; }
@@ -158,14 +159,11 @@
           IMAGE_EXTENSION: '.png',
           FACTORY_FOLDERS: {
             'Taesung': 'taesung',
-            'Kugil': 'kugil',
-            'MYC': 'myc',
-            'Honor': 'honor',
           },
           // Add your logo URL here (can be from GitHub or any image URL)
           LOGO_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/logo.png',
           // Sheet names/tabs to load (add all your factory sheet names here)
-          SHEET_NAMES: ['Taesung', 'Kugil', 'MYC', 'Honor'], // Example: ['Taesung', 'Kugil', 'Factory C']
+          SHEET_NAMES: ['Taesung'], // Example: ['Taesung', 'Factory B', 'Factory C']
         };
         // ============================================
         
@@ -565,6 +563,7 @@
                     {filteredProducts.map(p => (
                       <div key={p.id} className="product-card">
                         <div className="product-image">
+                          {p.factory && <div className="factory-badge">{p.factory}</div>}
                           <img 
                             src={p.image} 
                             alt={p.name}
@@ -576,7 +575,6 @@
                           <div className="product-component">{p.name}</div>
                           <div className="product-meta">
                             {p.category && <div>Category: {p.category}</div>}
-                            {p.factory && <div>Factory: {p.factory}</div>}
                             {p.location && <div>Location: {p.location}</div>}
                             {p.volume && <div>Volume: {p.volume}</div>}
                             {p.shape && <div>Shape: {p.shape}</div>}
