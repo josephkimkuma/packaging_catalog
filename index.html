@@ -77,6 +77,10 @@
           const [searchTerm, setSearchTerm] = useState('');
           const [selectedCategory, setSelectedCategory] = useState('all');
           const [selectedFactory, setSelectedFactory] = useState('all');
+          const [selectedLocation, setSelectedLocation] = useState('all');
+          const [selectedVolume, setSelectedVolume] = useState('all');
+          const [selectedShape, setSelectedShape] = useState('all');
+          const [selectedMaterial, setSelectedMaterial] = useState('all');
           const [products, setProducts] = useState([]);
           const [loading, setLoading] = useState(true);
           const [error, setError] = useState('');
@@ -159,17 +163,50 @@
 
           const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
           const factories = ['all', ...new Set(products.map(p => p.factory).filter(Boolean))];
+          
+          // Extract all unique values from comma-separated fields
+          const extractUniqueValues = (field) => {
+            const allValues = products
+              .map(p => p[field])
+              .filter(Boolean)
+              .flatMap(val => val.split(',').map(v => v.trim()))
+              .filter(Boolean);
+            return ['all', ...new Set(allValues)].sort((a, b) => {
+              if (a === 'all') return -1;
+              if (b === 'all') return 1;
+              return a.localeCompare(b);
+            });
+          };
+          
+          const locations = extractUniqueValues('location');
+          const volumes = extractUniqueValues('volume');
+          const shapes = extractUniqueValues('shape');
+          const materials = extractUniqueValues('material');
 
           const filteredProducts = useMemo(() => {
             return products.filter(product => {
               const matchesSearch = !searchTerm || 
                 product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 product.itemNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+              
               const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
               const matchesFactory = selectedFactory === 'all' || product.factory === selectedFactory;
-              return matchesSearch && matchesCategory && matchesFactory;
+              
+              // Check if selected value exists in comma-separated field
+              const matchesLocation = selectedLocation === 'all' || 
+                product.location?.split(',').map(v => v.trim()).includes(selectedLocation);
+              const matchesVolume = selectedVolume === 'all' || 
+                product.volume?.split(',').map(v => v.trim()).includes(selectedVolume);
+              const matchesShape = selectedShape === 'all' || 
+                product.shape?.split(',').map(v => v.trim()).includes(selectedShape);
+              const matchesMaterial = selectedMaterial === 'all' || 
+                product.material?.split(',').map(v => v.trim()).includes(selectedMaterial);
+              
+              return matchesSearch && matchesCategory && matchesFactory && 
+                     matchesLocation && matchesVolume && matchesShape && matchesMaterial;
             });
-          }, [searchTerm, selectedCategory, selectedFactory, products]);
+          }, [searchTerm, selectedCategory, selectedFactory, selectedLocation, 
+              selectedVolume, selectedShape, selectedMaterial, products]);
 
           if (!isAuthenticated) {
             return (
@@ -257,6 +294,58 @@
                           onClick={() => setSelectedFactory(fac)}
                         >
                           {fac === 'all' ? 'All Factories' : fac}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="filter-group">
+                      <div className="filter-label">Location</div>
+                      {locations.map(loc => (
+                        <div 
+                          key={loc}
+                          className={`filter-option ${selectedLocation === loc ? 'active' : ''}`}
+                          onClick={() => setSelectedLocation(loc)}
+                        >
+                          {loc === 'all' ? 'All Locations' : loc}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="filter-group">
+                      <div className="filter-label">Volume</div>
+                      {volumes.map(vol => (
+                        <div 
+                          key={vol}
+                          className={`filter-option ${selectedVolume === vol ? 'active' : ''}`}
+                          onClick={() => setSelectedVolume(vol)}
+                        >
+                          {vol === 'all' ? 'All Volumes' : vol}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="filter-group">
+                      <div className="filter-label">Shape</div>
+                      {shapes.map(shp => (
+                        <div 
+                          key={shp}
+                          className={`filter-option ${selectedShape === shp ? 'active' : ''}`}
+                          onClick={() => setSelectedShape(shp)}
+                        >
+                          {shp === 'all' ? 'All Shapes' : shp}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="filter-group">
+                      <div className="filter-label">Material</div>
+                      {materials.map(mat => (
+                        <div 
+                          key={mat}
+                          className={`filter-option ${selectedMaterial === mat ? 'active' : ''}`}
+                          onClick={() => setSelectedMaterial(mat)}
+                        >
+                          {mat === 'all' ? 'All Materials' : mat}
                         </div>
                       ))}
                     </div>
