@@ -159,13 +159,11 @@
           IMAGE_EXTENSION: '.png',
           FACTORY_FOLDERS: {
             'Taesung': 'taesung',
-            'Kugil': 'kugil',
-            'MYC': 'myc',
           },
           // Add your logo URL here (can be from GitHub or any image URL)
           LOGO_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/logo.png',
           // Sheet names/tabs to load (add all your factory sheet names here)
-          SHEET_NAMES: ['Taesung', 'Kugil', 'MYC'], // Example: ['Taesung', 'Factory B', 'Factory C']
+          SHEET_NAMES: ['Taesung'], // Example: ['Taesung', 'Factory B', 'Factory C']
         };
         // ============================================
         
@@ -566,11 +564,13 @@
                       <div key={p.id} className="product-card">
                         <div className="product-image">
                           {p.factory && <div className="factory-badge">{p.factory}</div>}
-                          <img 
-                            src={p.image} 
-                            alt={p.name}
-                            onError={e => e.target.src = 'https://via.placeholder.com/400?text=No+Image'}
-                          />
+                          <div className="product-image-inner">
+                            <img 
+                              src={p.image} 
+                              alt={p.name}
+                              onError={e => e.target.src = 'https://via.placeholder.com/400?text=No+Image'}
+                            />
+                          </div>
                         </div>
                         <div className="product-info">
                           <div className="product-name">{p.itemNumber}</div>
