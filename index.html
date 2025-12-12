@@ -161,6 +161,8 @@
           },
           // Add your logo URL here (can be from GitHub or any image URL)
           LOGO_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/logo.png',
+          // Sheet names/tabs to load (add all your factory sheet names here)
+          SHEET_NAMES: ['Taesung'], // Example: ['Taesung', 'Factory B', 'Factory C']
         };
         // ============================================
         
@@ -204,48 +206,71 @@
               try {
                 setLoading(true);
                 setError('');
-                const sheetUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.GOOGLE_SHEET_ID}/export?format=csv`;
-                const response = await fetch(sheetUrl);
-                if (!response.ok) throw new Error('Failed to load sheet');
-                const csvText = await response.text();
                 
-                Papa.parse(csvText, {
-                  header: true,
-                  skipEmptyLines: true,
-                  complete: (results) => {
-                    const parsedProducts = results.data.map((row, index) => {
-                      const itemNumber = row['Item #'] || row['Item#'] || '';
-                      const factoryName = row['Factory name'] || row['Factory Name'] || '';
-                      const category = row['Category'] || '';
-                      const component = row['Component'] || '';
-                      const fillVolume = row['Fill volume'] || row['Fill Volume'] || '';
-                      const factoryLocation = row['Factory location'] || '';
-                      const shape = row['Shape'] || '';
-                      const material = row['Material'] || '';
-                      const imageValue = row['Image'] || '';
-                      
-                      const factoryFolder = CONFIG.FACTORY_FOLDERS[factoryName] || CONFIG.FACTORY_FOLDERS[factoryName.trim()] || 'default';
-                      const imageUrl = imageValue || `${CONFIG.IMAGE_BASE_URL}/${factoryFolder}/${itemNumber}${CONFIG.IMAGE_EXTENSION}`;
-                      
-                      return {
-                        id: itemNumber || `product-${index}`,
-                        itemNumber,
-                        name: component,
-                        category,
-                        factory: factoryName,
-                        volume: fillVolume,
-                        location: factoryLocation,
-                        shape,
-                        material,
-                        image: imageUrl
-                      };
-                    });
+                let allProducts = [];
+                
+                // Load all sheets specified in CONFIG.SHEET_NAMES
+                for (const sheetName of CONFIG.SHEET_NAMES) {
+                  try {
+                    // Construct URL with specific sheet name (gid parameter)
+                    const sheetUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
                     
-                    setProducts(parsedProducts);
-                    setError('');
-                  },
-                  error: () => setError('Error parsing data')
-                });
+                    const response = await fetch(sheetUrl);
+                    if (!response.ok) {
+                      console.warn(`Failed to load sheet: ${sheetName}`);
+                      continue;
+                    }
+                    
+                    const csvText = await response.text();
+                    
+                    // Parse CSV using PapaParse
+                    await new Promise((resolve) => {
+                      Papa.parse(csvText, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: (results) => {
+                          const parsedProducts = results.data.map((row, index) => {
+                            const itemNumber = row['Item #'] || row['Item#'] || '';
+                            const factoryName = row['Factory name'] || row['Factory Name'] || '';
+                            const category = row['Category'] || '';
+                            const component = row['Component'] || '';
+                            const fillVolume = row['Fill volume'] || row['Fill Volume'] || '';
+                            const factoryLocation = row['Factory location'] || '';
+                            const shape = row['Shape'] || '';
+                            const material = row['Material'] || '';
+                            const imageValue = row['Image'] || '';
+                            
+                            const factoryFolder = CONFIG.FACTORY_FOLDERS[factoryName] || CONFIG.FACTORY_FOLDERS[factoryName.trim()] || 'default';
+                            const imageUrl = imageValue || `${CONFIG.IMAGE_BASE_URL}/${factoryFolder}/${itemNumber}${CONFIG.IMAGE_EXTENSION}`;
+                            
+                            return {
+                              id: `${sheetName}-${itemNumber || index}`,
+                              itemNumber,
+                              name: component,
+                              category,
+                              factory: factoryName,
+                              volume: fillVolume,
+                              location: factoryLocation,
+                              shape,
+                              material,
+                              image: imageUrl,
+                              sourceSheet: sheetName
+                            };
+                          }).filter(p => p.itemNumber); // Only include rows with item numbers
+                          
+                          allProducts = [...allProducts, ...parsedProducts];
+                          resolve();
+                        },
+                        error: () => resolve()
+                      });
+                    });
+                  } catch (err) {
+                    console.warn(`Error loading sheet ${sheetName}:`, err);
+                  }
+                }
+                
+                setProducts(allProducts);
+                setError('');
               } catch (err) {
                 setError(err.message);
                 setProducts([]);
