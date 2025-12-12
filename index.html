@@ -17,7 +17,58 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         background: #ffffff;
+        transition: background-color 0.3s, color 0.3s;
       }
+      
+      /* Dark mode styles */
+      body.dark-mode { background: #1a1a1a !important; color: #e0e0e0; }
+      .dark-mode .container { background: #1a1a1a; }
+      .dark-mode .header { background: #1a1a1a; border-bottom-color: #333; }
+      .dark-mode .logo { color: #fff; }
+      .dark-mode .product-card { background: #1a1a1a; border-right-color: #333; border-bottom-color: #333; }
+      .dark-mode .product-card:hover { background-color: #222; }
+      .dark-mode .product-image { background: #1a1a1a; }
+      .dark-mode .product-name { color: #fff; }
+      .dark-mode .product-component { color: #ccc; }
+      .dark-mode .product-meta { color: #999; }
+      .dark-mode .product-grid { border-top-color: #333; }
+      .dark-mode .filter-label { color: #999; }
+      .dark-mode .filter-option { color: #999; }
+      .dark-mode .filter-option:hover { color: #fff; }
+      .dark-mode .filter-option.active { color: #fff; }
+      .dark-mode .search-box { background: #222; border-color: #333; color: #fff; }
+      .dark-mode .search-box:focus { border-color: #555; }
+      .dark-mode .logout-btn, .dark-mode .refresh-btn, .dark-mode .clear-filters-btn { 
+        background: #222; 
+        border-color: #333; 
+        color: #ccc; 
+      }
+      .dark-mode .logout-btn:hover, .dark-mode .refresh-btn:hover, .dark-mode .clear-filters-btn:hover { 
+        background: #2a2a2a; 
+        border-color: #444; 
+        color: #fff; 
+      }
+      .dark-mode .results-count { color: #999; }
+      .dark-mode .filter-group-scrollable::-webkit-scrollbar-track { background: #222; }
+      .dark-mode .filter-group-scrollable::-webkit-scrollbar-thumb { background: #444; }
+      .dark-mode .sidebar-content::-webkit-scrollbar-track { background: #222; }
+      .dark-mode .sidebar-content::-webkit-scrollbar-thumb { background: #444; }
+      
+      .dark-mode-toggle {
+        padding: 7px 14px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        background: #fff;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        margin-left: 10px;
+        transition: all 0.15s;
+      }
+      .dark-mode-toggle:hover { border-color: #999; background: #fafafa; }
+      .dark-mode .dark-mode-toggle { background: #222; border-color: #333; color: #ccc; }
+      .dark-mode .dark-mode-toggle:hover { background: #2a2a2a; border-color: #444; color: #fff; }
+      
       .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
       .sidebar { width: 220px; flex-shrink: 0; }
       .sidebar-content { position: sticky; top: 100px; max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 8px; }
@@ -122,6 +173,18 @@
           const [products, setProducts] = useState([]);
           const [loading, setLoading] = useState(true);
           const [error, setError] = useState('');
+          const [darkMode, setDarkMode] = useState(() => {
+            const saved = localStorage.getItem('darkMode');
+            return saved === 'true';
+          });
+
+          useEffect(() => {
+            if (darkMode) {
+              document.body.classList.add('dark-mode');
+            } else {
+              document.body.classList.remove('dark-mode');
+            }
+          }, [darkMode]);
 
           useEffect(() => {
             const loadProductsFromSheet = async () => {
@@ -192,6 +255,12 @@
               alert('Incorrect password');
               setPassword('');
             }
+          };
+
+          const toggleDarkMode = () => {
+            const newMode = !darkMode;
+            setDarkMode(newMode);
+            localStorage.setItem('darkMode', newMode.toString());
           };
 
           const clearAllFilters = () => {
@@ -306,6 +375,9 @@
                 <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div className="logo">Packaging Catalog</div>
                   <div style={{ display: 'flex', gap: '12px' }}>
+                    <button onClick={toggleDarkMode} className="dark-mode-toggle">
+                      {darkMode ? '☀️ Light' : '🌙 Dark'}
+                    </button>
                     <button onClick={refreshData} className="refresh-btn">Refresh</button>
                     <button onClick={() => {
                       setIsAuthenticated(false);
