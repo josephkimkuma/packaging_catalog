@@ -7,8 +7,42 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+      .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+      .sidebar { width: 240px; flex-shrink: 0; }
+      .main-content { flex: 1; min-width: 0; }
+      .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 32px; }
+      .product-card { background: white; border-radius: 8px; overflow: hidden; transition: transform 0.2s; }
+      .product-card:hover { transform: translateY(-4px); }
+      .product-image { height: 320px; background: white; display: flex; align-items: center; justify-content: center; padding: 24px; }
+      .product-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
+      .filter-group { margin-bottom: 32px; }
+      .filter-label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #666; margin-bottom: 12px; }
+      .filter-option { padding: 8px 0; cursor: pointer; color: #333; font-size: 15px; transition: color 0.2s; }
+      .filter-option:hover { color: #000; }
+      .filter-option.active { color: #000; font-weight: 600; }
+      .search-box { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; font-family: 'Inter', sans-serif; }
+      .search-box:focus { outline: none; border-color: #999; }
+      .product-info { padding: 20px; }
+      .product-name { font-size: 16px; font-weight: 600; color: #000; margin-bottom: 8px; }
+      .product-meta { font-size: 13px; color: #666; line-height: 1.6; }
+      .header { border-bottom: 1px solid #e5e5e5; padding: 20px 0; background: white; position: sticky; top: 0; z-index: 100; }
+      .logo { font-size: 20px; font-weight: 700; color: #000; }
+      .logout-btn { padding: 8px 16px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 14px; font-weight: 500; }
+      .logout-btn:hover { border-color: #999; }
+      .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #fafafa; }
+      .login-box { background: white; padding: 48px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 400px; width: 100%; }
+      .login-input { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; margin-bottom: 16px; }
+      .login-btn { width: 100%; padding: 12px; background: #000; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; }
+      .login-btn:hover { background: #333; }
+      .results-count { font-size: 14px; color: #666; margin-bottom: 24px; }
+      .refresh-btn { padding: 8px 16px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 14px; font-weight: 500; margin-left: 12px; }
+      .refresh-btn:hover { border-color: #999; }
+    </style>
 </head>
 <body>
     <div id="root"></div>
@@ -17,51 +51,36 @@
         const { useState, useMemo, useEffect } = React;
         
         // ============================================
-        // CONFIGURATION - UPDATE THESE VALUES
+        // CONFIGURATION
         // ============================================
         const CONFIG = {
-          // Your Google Sheet ID (from the URL)
           GOOGLE_SHEET_ID: '17loO452it-qoRcwNKp5nbZg0exuBRZt794sTOmrkwEY',
-          
-          // Your password
           PASSWORD: 'testck',
-          
-          // Base URL for images
           IMAGE_BASE_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/images',
-          
-          // Image file extension
           IMAGE_EXTENSION: '.png',
-          
-          // Factory folder mapping
           FACTORY_FOLDERS: {
             'Taesung': 'taesung',
-            // Add more factories as you create folders:
-            // 'Factory Name': 'folder-name',
           }
         };
         // ============================================
         
         const PackagingCatalog = () => {
           const [isAuthenticated, setIsAuthenticated] = useState(() => {
-            // Check if authenticated within the last hour
             const authTime = localStorage.getItem('authTime');
             if (authTime) {
               const hoursSinceAuth = (Date.now() - parseInt(authTime)) / (1000 * 60 * 60);
-              return hoursSinceAuth < 1; // Less than 1 hour
+              return hoursSinceAuth < 1;
             }
             return false;
           });
           const [password, setPassword] = useState('');
           const [searchTerm, setSearchTerm] = useState('');
           const [selectedCategory, setSelectedCategory] = useState('all');
-          const [selectedSupplier, setSelectedSupplier] = useState('all');
-          const [showFilters, setShowFilters] = useState(false);
+          const [selectedFactory, setSelectedFactory] = useState('all');
           const [products, setProducts] = useState([]);
           const [loading, setLoading] = useState(true);
           const [error, setError] = useState('');
-          const [lastUpdated, setLastUpdated] = useState(null);
 
-          // Load products from Google Sheets
           useEffect(() => {
             const loadProductsFromSheet = async () => {
               if (!isAuthenticated) return;
@@ -69,84 +88,49 @@
               try {
                 setLoading(true);
                 setError('');
-                
-                // Construct Google Sheets CSV export URL
                 const sheetUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.GOOGLE_SHEET_ID}/export?format=csv`;
-                
                 const response = await fetch(sheetUrl);
-                if (!response.ok) {
-                  throw new Error('Failed to load sheet. Make sure it\'s published to web!');
-                }
-                
+                if (!response.ok) throw new Error('Failed to load sheet');
                 const csvText = await response.text();
                 
-                // Parse CSV using PapaParse
-                                  Papa.parse(csvText, {
+                Papa.parse(csvText, {
                   header: true,
                   skipEmptyLines: true,
                   complete: (results) => {
                     const parsedProducts = results.data.map((row, index) => {
-                      // Map your Excel columns to catalog fields
-                      // Try multiple possible column name variations
-                      const itemNumber = row['Item #'] || row['Item#'] || row.itemNumber || '';
-                      const factoryName = row['Factory name'] || row['Factory Name'] || row['FactoryName'] || row['Factory_name'] || row.supplier || '';
-                      const category = row['Category'] || row.category || '';
+                      const itemNumber = row['Item #'] || row['Item#'] || '';
+                      const factoryName = row['Factory name'] || row['Factory Name'] || '';
+                      const category = row['Category'] || '';
                       const component = row['Component'] || '';
-                      const fillVolume = row['Fill volume'] || row['Fill Volume'] || row['FillVolume'] || row.volume || '';
-                      const factoryLocation = row['Factory location'] || row['Factory Location'] || '';
+                      const fillVolume = row['Fill volume'] || row['Fill Volume'] || '';
+                      const factoryLocation = row['Factory location'] || '';
                       const shape = row['Shape'] || '';
                       const material = row['Material'] || '';
                       const imageValue = row['Image'] || '';
                       
-                      // Debug logging
-                      if (index === 0) {
-                        console.log('First row data:', row);
-                        console.log('Item Number:', itemNumber);
-                        console.log('Factory Name:', factoryName);
-                        console.log('Available columns:', Object.keys(row));
-                      }
-                      
-                      // Get factory folder from factory name mapping
                       const factoryFolder = CONFIG.FACTORY_FOLDERS[factoryName] || CONFIG.FACTORY_FOLDERS[factoryName.trim()] || 'default';
-                      
-                      // Construct image URL (from Image column or auto-generate)
-                      const imageUrl = imageValue || 
-                        `${CONFIG.IMAGE_BASE_URL}/${factoryFolder}/${itemNumber}${CONFIG.IMAGE_EXTENSION}`;
-                      
-                      // Build description from Component
-                      const description = component;
+                      const imageUrl = imageValue || `${CONFIG.IMAGE_BASE_URL}/${factoryFolder}/${itemNumber}${CONFIG.IMAGE_EXTENSION}`;
                       
                       return {
                         id: itemNumber || `product-${index}`,
-                        itemNumber: itemNumber,
+                        itemNumber,
                         name: component,
-                        category: category,
-                        supplier: factoryName,
-                        description: description,
+                        category,
+                        factory: factoryName,
                         volume: fillVolume,
-                        size: shape,
-                        material: material,
-                        color: factoryLocation,
-                        image: imageUrl,
-                        link: '#',
-                        // Store original fields for display
-                        factoryLocation: factoryLocation,
-                        shape: shape
+                        location: factoryLocation,
+                        shape,
+                        material,
+                        image: imageUrl
                       };
                     });
                     
                     setProducts(parsedProducts);
-                    setLastUpdated(new Date());
                     setError('');
                   },
-                  error: (error) => {
-                    console.error('Parse error:', error);
-                    setError('Error parsing sheet data');
-                  }
+                  error: () => setError('Error parsing data')
                 });
-                
               } catch (err) {
-                console.error('Error loading products:', err);
                 setError(err.message);
                 setProducts([]);
               } finally {
@@ -154,9 +138,7 @@
               }
             };
 
-            if (isAuthenticated) {
-              loadProductsFromSheet();
-            }
+            if (isAuthenticated) loadProductsFromSheet();
           }, [isAuthenticated]);
 
           const handleLogin = () => {
@@ -170,42 +152,40 @@
             }
           };
 
-          const refreshData = async () => {
-            setLoading(true);
-            // Trigger reload by toggling auth state
-            const wasAuth = isAuthenticated;
+          const refreshData = () => {
             setIsAuthenticated(false);
-            setTimeout(() => setIsAuthenticated(wasAuth), 100);
+            setTimeout(() => setIsAuthenticated(true), 100);
           };
 
           const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
-          const suppliers = ['all', ...new Set(products.map(p => p.supplier).filter(Boolean))];
+          const factories = ['all', ...new Set(products.map(p => p.factory).filter(Boolean))];
 
           const filteredProducts = useMemo(() => {
             return products.filter(product => {
               const matchesSearch = !searchTerm || 
                 product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                product.itemNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+                product.itemNumber?.toLowerCase().includes(searchTerm.toLowerCase());
               const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-              const matchesSupplier = selectedSupplier === 'all' || product.supplier === selectedSupplier;
-              return matchesSearch && matchesCategory && matchesSupplier;
+              const matchesFactory = selectedFactory === 'all' || product.factory === selectedFactory;
+              return matchesSearch && matchesCategory && matchesFactory;
             });
-          }, [searchTerm, selectedCategory, selectedSupplier, products]);
+          }, [searchTerm, selectedCategory, selectedFactory, products]);
 
           if (!isAuthenticated) {
             return (
-              <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-                  <div className="flex justify-center mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-3xl font-bold">P</div>
-                  </div>
-                  <h2 className="text-2xl font-bold text-center mb-2">Packaging Catalog</h2>
-                  <p className="text-center text-gray-600 mb-6">Enter password to access</p>
-                  <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+              <div className="login-container">
+                <div className="login-box">
+                  <h2 className="logo" style={{ marginBottom: '32px' }}>Packaging Catalog</h2>
+                  <input 
+                    type="password" 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)}
                     onKeyPress={e => e.key === 'Enter' && handleLogin()}
-                    placeholder="Password" className="w-full px-4 py-3 border rounded-lg mb-4" autoFocus />
-                  <button onClick={handleLogin} className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-pink-600 hover:to-purple-700">Login</button>
+                    placeholder="Password" 
+                    className="login-input"
+                    autoFocus 
+                  />
+                  <button onClick={handleLogin} className="login-btn">Login</button>
                 </div>
               </div>
             );
@@ -213,192 +193,114 @@
 
           if (loading) {
             return (
-              <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading products from Google Sheets...</p>
-                </div>
+              <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa' }}>
+                <div style={{ textAlign: 'center', color: '#666' }}>Loading...</div>
               </div>
             );
           }
 
           return (
-            <div className="min-h-screen bg-gray-50">
-              <header className="bg-white border-b sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg text-white font-bold flex items-center justify-center">P</div>
-                      <div>
-                        <h1 className="text-2xl font-bold">Packaging Catalog</h1>
-                        {lastUpdated && (
-                          <p className="text-xs text-gray-500">
-                            Last updated: {lastUpdated.toLocaleTimeString()}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button onClick={refreshData} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition">
-                        Refresh
-                      </button>
-                      <button onClick={() => setShowFilters(!showFilters)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
-                        {showFilters ? 'Hide Filters' : 'Show Filters'}
-                      </button>
-                      <button onClick={() => {
-                        setIsAuthenticated(false);
-                        localStorage.removeItem('authTime');
-                      }} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition">Logout</button>
-                    </div>
+            <div style={{ background: '#fafafa', minHeight: '100vh' }}>
+              <div className="header">
+                <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div className="logo">Packaging Catalog</div>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button onClick={refreshData} className="refresh-btn">Refresh</button>
+                    <button onClick={() => {
+                      setIsAuthenticated(false);
+                      localStorage.removeItem('authTime');
+                    }} className="logout-btn">Logout</button>
                   </div>
                 </div>
-              </header>
+              </div>
 
               {error && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 mx-4 mt-4">
-                  <div className="flex items-start">
-                    <div className="flex-1">
-                      <p className="text-red-700 font-medium">Error loading data</p>
-                      <p className="text-red-600 text-sm mt-1">{error}</p>
-                      <p className="text-red-600 text-sm mt-2">
-                        Make sure your Google Sheet is published to web:
-                        <br />File → Share → Publish to web → Publish
-                      </p>
-                    </div>
+                <div className="container" style={{ marginTop: '24px' }}>
+                  <div style={{ background: '#fee', border: '1px solid #fcc', padding: '16px', borderRadius: '6px', color: '#c00' }}>
+                    {error}
                   </div>
                 </div>
               )}
 
-              <div className="bg-white border-b">
-                <div className="max-w-7xl mx-auto px-4 py-4">
-                  <input type="text" placeholder="Search by item number, name, or description..." 
-                    value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500" />
-                  
-                  {showFilters && (
-                    <div className="mt-4 grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                        <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} 
-                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
-                          {categories.map(c => <option key={c} value={c}>{c === 'all' ? 'All Categories' : c}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Factory</label>
-                        <select value={selectedSupplier} onChange={e => setSelectedSupplier(e.target.value)} 
-                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
-                          {suppliers.map(s => <option key={s} value={s}>{s === 'all' ? 'All Factories' : s}</option>)}
-                        </select>
-                      </div>
+              <div className="container" style={{ display: 'flex', gap: '48px', paddingTop: '32px', paddingBottom: '64px' }}>
+                <div className="sidebar">
+                  <div style={{ position: 'sticky', top: '100px' }}>
+                    <div className="filter-group">
+                      <input 
+                        type="text" 
+                        placeholder="Search..." 
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="search-box"
+                      />
                     </div>
-                  )}
 
-                  {(selectedCategory !== 'all' || selectedSupplier !== 'all') && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {selectedCategory !== 'all' && (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
-                          {selectedCategory}
-                          <button onClick={() => setSelectedCategory('all')} className="ml-2 hover:text-purple-900">✕</button>
-                        </span>
-                      )}
-                      {selectedSupplier !== 'all' && (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-pink-100 text-pink-800">
-                          {selectedSupplier}
-                          <button onClick={() => setSelectedSupplier('all')} className="ml-2 hover:text-pink-900">✕</button>
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="max-w-7xl mx-auto px-4 py-4">
-                <p className="text-gray-600">Showing {filteredProducts.length} of {products.length} items</p>
-              </div>
-
-              <main className="max-w-7xl mx-auto px-4 pb-12">
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {filteredProducts.map(p => (
-                    <div key={p.id} className="bg-white rounded-lg shadow hover:shadow-md transition overflow-hidden">
-                      <div className="bg-white overflow-hidden rounded-t-lg flex items-center justify-center" style={{ height: '300px' }}>
-                        <img src={p.image} 
-                          alt={p.name} 
-                          className="max-w-full max-h-full object-contain p-4"
-                          onError={e => e.target.src = 'https://via.placeholder.com/400?text=No+Image'} />
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between mb-2">
-                          <h3 className="font-semibold text-gray-900">{p.name}</h3>
-                          <span className="text-xs text-gray-500">{p.itemNumber}</span>
+                    <div className="filter-group">
+                      <div className="filter-label">Category</div>
+                      {categories.map(cat => (
+                        <div 
+                          key={cat}
+                          className={`filter-option ${selectedCategory === cat ? 'active' : ''}`}
+                          onClick={() => setSelectedCategory(cat)}
+                        >
+                          {cat === 'all' ? 'All Categories' : cat}
                         </div>
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{p.description}</p>
-                        <div className="space-y-1 text-sm">
-                          {p.category && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Category:</span>
-                              <span className="font-medium">{p.category}</span>
-                            </div>
-                          )}
-                          {p.supplier && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Factory:</span>
-                              <span className="font-medium">{p.supplier}</span>
-                            </div>
-                          )}
-                          {p.factoryLocation && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Location:</span>
-                              <span className="font-medium">{p.factoryLocation}</span>
-                            </div>
-                          )}
-                          {p.volume && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Fill Volume:</span>
-                              <span className="font-medium">{p.volume}</span>
-                            </div>
-                          )}
-                          {p.shape && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Shape:</span>
-                              <span className="font-medium">{p.shape}</span>
-                            </div>
-                          )}
-                          {p.material && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Material:</span>
-                              <span className="font-medium">{p.material}</span>
-                            </div>
-                          )}
-                        </div>
-                        {p.link && p.link !== '#' && (
-                          <a href={p.link} target="_blank" rel="noopener noreferrer"
-                            className="mt-4 block w-full text-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition text-sm font-medium">
-                            View Details
-                          </a>
-                        )}
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
 
-                {filteredProducts.length === 0 && !loading && (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg mb-4">No products found matching your criteria.</p>
-                    <button onClick={() => { setSearchTerm(''); setSelectedCategory('all'); setSelectedSupplier('all'); }}
-                      className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition">
-                      Clear All Filters
-                    </button>
+                    <div className="filter-group">
+                      <div className="filter-label">Factory</div>
+                      {factories.map(fac => (
+                        <div 
+                          key={fac}
+                          className={`filter-option ${selectedFactory === fac ? 'active' : ''}`}
+                          onClick={() => setSelectedFactory(fac)}
+                        >
+                          {fac === 'all' ? 'All Factories' : fac}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                )}
-              </main>
-
-              <footer className="bg-white border-t mt-12 py-6">
-                <div className="max-w-7xl mx-auto px-4 text-center text-gray-600 text-sm">
-                  <p>🔄 Data syncs automatically from Google Sheets</p>
-                  <p className="mt-1">Click "Refresh" to load the latest updates</p>
                 </div>
-              </footer>
+
+                <div className="main-content">
+                  <div className="results-count">
+                    {filteredProducts.length} {filteredProducts.length === 1 ? 'result' : 'results'}
+                  </div>
+
+                  <div className="product-grid">
+                    {filteredProducts.map(p => (
+                      <div key={p.id} className="product-card">
+                        <div className="product-image">
+                          <img 
+                            src={p.image} 
+                            alt={p.name}
+                            onError={e => e.target.src = 'https://via.placeholder.com/400?text=No+Image'}
+                          />
+                        </div>
+                        <div className="product-info">
+                          <div className="product-name">{p.name}</div>
+                          <div className="product-meta">
+                            {p.itemNumber && <div>Item #: {p.itemNumber}</div>}
+                            {p.category && <div>Category: {p.category}</div>}
+                            {p.factory && <div>Factory: {p.factory}</div>}
+                            {p.location && <div>Location: {p.location}</div>}
+                            {p.volume && <div>Volume: {p.volume}</div>}
+                            {p.shape && <div>Shape: {p.shape}</div>}
+                            {p.material && <div>Material: {p.material}</div>}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {filteredProducts.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '64px 0', color: '#999' }}>
+                      No products found
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           );
         };
