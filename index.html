@@ -14,6 +14,11 @@
       body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
       .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
       .sidebar { width: 240px; flex-shrink: 0; }
+      .sidebar-content { position: sticky; top: 100px; max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 8px; }
+      .sidebar-content::-webkit-scrollbar { width: 6px; }
+      .sidebar-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+      .sidebar-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+      .sidebar-content::-webkit-scrollbar-thumb:hover { background: #999; }
       .main-content { flex: 1; min-width: 0; }
       .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 32px; }
       .product-card { background: white; border-radius: 8px; overflow: hidden; transition: transform 0.2s; display: flex; flex-direction: column; }
@@ -21,6 +26,11 @@
       .product-image { aspect-ratio: 1; background: white; display: flex; align-items: center; justify-content: center; padding: 24px; }
       .product-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
       .filter-group { margin-bottom: 32px; }
+      .filter-group-scrollable { max-height: 200px; overflow-y: auto; margin-top: 12px; padding-right: 8px; }
+      .filter-group-scrollable::-webkit-scrollbar { width: 4px; }
+      .filter-group-scrollable::-webkit-scrollbar-track { background: #f5f5f5; border-radius: 2px; }
+      .filter-group-scrollable::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+      .filter-group-scrollable::-webkit-scrollbar-thumb:hover { background: #ccc; }
       .filter-label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #666; margin-bottom: 12px; }
       .filter-option { padding: 8px 0; cursor: pointer; color: #333; font-size: 15px; transition: color 0.2s; }
       .filter-option:hover { color: #000; }
@@ -40,6 +50,8 @@
       .login-btn { width: 100%; padding: 12px; background: #000; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; }
       .login-btn:hover { background: #333; }
       .results-count { font-size: 14px; color: #666; margin-bottom: 24px; }
+      .clear-filters-btn { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 13px; font-weight: 500; margin-bottom: 24px; color: #666; }
+      .clear-filters-btn:hover { border-color: #999; color: #000; }
       .refresh-btn { padding: 8px 16px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 14px; font-weight: 500; margin-left: 12px; }
       .refresh-btn:hover { border-color: #999; }
     </style>
@@ -156,6 +168,16 @@
             }
           };
 
+          const clearAllFilters = () => {
+            setSelectedCategory('all');
+            setSelectedFactory('all');
+            setSelectedLocation('all');
+            setSelectedVolume('all');
+            setSelectedShape('all');
+            setSelectedMaterial('all');
+            setSearchTerm('');
+          };
+
           const refreshData = () => {
             setIsAuthenticated(false);
             setTimeout(() => setIsAuthenticated(true), 100);
@@ -261,7 +283,11 @@
 
               <div className="container" style={{ display: 'flex', gap: '48px', paddingTop: '32px', paddingBottom: '64px' }}>
                 <div className="sidebar">
-                  <div style={{ position: 'sticky', top: '100px' }}>
+                  <div className="sidebar-content">
+                    <button onClick={clearAllFilters} className="clear-filters-btn">
+                      Clear All Filters
+                    </button>
+
                     <div className="filter-group">
                       <input 
                         type="text" 
@@ -274,80 +300,92 @@
 
                     <div className="filter-group">
                       <div className="filter-label">Category</div>
-                      {categories.map(cat => (
-                        <div 
-                          key={cat}
-                          className={`filter-option ${selectedCategory === cat ? 'active' : ''}`}
-                          onClick={() => setSelectedCategory(cat)}
-                        >
-                          {cat === 'all' ? 'All Categories' : cat}
-                        </div>
-                      ))}
+                      <div className="filter-group-scrollable">
+                        {categories.map(cat => (
+                          <div 
+                            key={cat}
+                            className={`filter-option ${selectedCategory === cat ? 'active' : ''}`}
+                            onClick={() => setSelectedCategory(cat)}
+                          >
+                            {cat === 'all' ? 'All Categories' : cat}
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="filter-group">
                       <div className="filter-label">Factory</div>
-                      {factories.map(fac => (
-                        <div 
-                          key={fac}
-                          className={`filter-option ${selectedFactory === fac ? 'active' : ''}`}
-                          onClick={() => setSelectedFactory(fac)}
-                        >
-                          {fac === 'all' ? 'All Factories' : fac}
-                        </div>
-                      ))}
+                      <div className="filter-group-scrollable">
+                        {factories.map(fac => (
+                          <div 
+                            key={fac}
+                            className={`filter-option ${selectedFactory === fac ? 'active' : ''}`}
+                            onClick={() => setSelectedFactory(fac)}
+                          >
+                            {fac === 'all' ? 'All Factories' : fac}
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="filter-group">
                       <div className="filter-label">Location</div>
-                      {locations.map(loc => (
-                        <div 
-                          key={loc}
-                          className={`filter-option ${selectedLocation === loc ? 'active' : ''}`}
-                          onClick={() => setSelectedLocation(loc)}
-                        >
-                          {loc === 'all' ? 'All Locations' : loc}
-                        </div>
-                      ))}
+                      <div className="filter-group-scrollable">
+                        {locations.map(loc => (
+                          <div 
+                            key={loc}
+                            className={`filter-option ${selectedLocation === loc ? 'active' : ''}`}
+                            onClick={() => setSelectedLocation(loc)}
+                          >
+                            {loc === 'all' ? 'All Locations' : loc}
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="filter-group">
                       <div className="filter-label">Volume</div>
-                      {volumes.map(vol => (
-                        <div 
-                          key={vol}
-                          className={`filter-option ${selectedVolume === vol ? 'active' : ''}`}
-                          onClick={() => setSelectedVolume(vol)}
-                        >
-                          {vol === 'all' ? 'All Volumes' : vol}
-                        </div>
-                      ))}
+                      <div className="filter-group-scrollable">
+                        {volumes.map(vol => (
+                          <div 
+                            key={vol}
+                            className={`filter-option ${selectedVolume === vol ? 'active' : ''}`}
+                            onClick={() => setSelectedVolume(vol)}
+                          >
+                            {vol === 'all' ? 'All Volumes' : vol}
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="filter-group">
                       <div className="filter-label">Shape</div>
-                      {shapes.map(shp => (
-                        <div 
-                          key={shp}
-                          className={`filter-option ${selectedShape === shp ? 'active' : ''}`}
-                          onClick={() => setSelectedShape(shp)}
-                        >
-                          {shp === 'all' ? 'All Shapes' : shp}
-                        </div>
-                      ))}
+                      <div className="filter-group-scrollable">
+                        {shapes.map(shp => (
+                          <div 
+                            key={shp}
+                            className={`filter-option ${selectedShape === shp ? 'active' : ''}`}
+                            onClick={() => setSelectedShape(shp)}
+                          >
+                            {shp === 'all' ? 'All Shapes' : shp}
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="filter-group">
                       <div className="filter-label">Material</div>
-                      {materials.map(mat => (
-                        <div 
-                          key={mat}
-                          className={`filter-option ${selectedMaterial === mat ? 'active' : ''}`}
-                          onClick={() => setSelectedMaterial(mat)}
-                        >
-                          {mat === 'all' ? 'All Materials' : mat}
-                        </div>
-                      ))}
+                      <div className="filter-group-scrollable">
+                        {materials.map(mat => (
+                          <div 
+                            key={mat}
+                            className={`filter-option ${selectedMaterial === mat ? 'active' : ''}`}
+                            onClick={() => setSelectedMaterial(mat)}
+                          >
+                            {mat === 'all' ? 'All Materials' : mat}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
