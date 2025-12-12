@@ -33,7 +33,6 @@
       .dark-mode .product-card:hover { background-color: #222; }
       .dark-mode .product-image { background: #fff; }
       .dark-mode .product-info { background: #1a1a1a; }
-      .dark-mode .factory-badge { background: rgba(255, 255, 255, 0.9); color: #000; }
       .dark-mode .product-name { color: #fff; }
       .dark-mode .product-component { color: #ccc; }
       .dark-mode .product-meta { color: #999; }
@@ -565,20 +564,18 @@
                     {filteredProducts.map(p => (
                       <div key={p.id} className="product-card">
                         <div className="product-image">
-                          {p.factory && <div className="factory-badge">{p.factory}</div>}
-                          <div className="product-image-inner">
-                            <img 
-                              src={p.image} 
-                              alt={p.name}
-                              onError={e => e.target.src = 'https://via.placeholder.com/400?text=No+Image'}
-                            />
-                          </div>
+                          <img 
+                            src={p.image} 
+                            alt={p.name}
+                            onError={e => e.target.src = 'https://via.placeholder.com/400?text=No+Image'}
+                          />
                         </div>
                         <div className="product-info">
                           <div className="product-name">{p.itemNumber}</div>
                           <div className="product-component">{p.name}</div>
                           <div className="product-meta">
                             {p.category && <div>Category: {p.category}</div>}
+                            {p.factory && <div>Factory: {p.factory}</div>}
                             {p.location && <div>Location: {p.location}</div>}
                             {p.volume && <div>Volume: {p.volume}</div>}
                             {p.shape && <div>Shape: {p.shape}</div>}
