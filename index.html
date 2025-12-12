@@ -203,21 +203,31 @@
           const factories = ['all', ...new Set(products.map(p => p.factory).filter(Boolean))];
           
           // Extract all unique values from comma-separated fields
-          const extractUniqueValues = (field) => {
+          const extractUniqueValues = (field, sortNumerically = false) => {
             const allValues = products
               .map(p => p[field])
               .filter(Boolean)
               .flatMap(val => val.split(',').map(v => v.trim()))
               .filter(Boolean);
-            return ['all', ...new Set(allValues)].sort((a, b) => {
-              if (a === 'all') return -1;
-              if (b === 'all') return 1;
-              return a.localeCompare(b);
-            });
+            
+            const uniqueValues = [...new Set(allValues)];
+            
+            if (sortNumerically) {
+              // Sort numerically by extracting numbers
+              uniqueValues.sort((a, b) => {
+                const numA = parseFloat(a.match(/[\d.]+/)?.[0] || 0);
+                const numB = parseFloat(b.match(/[\d.]+/)?.[0] || 0);
+                return numA - numB;
+              });
+            } else {
+              uniqueValues.sort((a, b) => a.localeCompare(b));
+            }
+            
+            return ['all', ...uniqueValues];
           };
           
           const locations = extractUniqueValues('location');
-          const volumes = extractUniqueValues('volume');
+          const volumes = extractUniqueValues('volume', true); // Sort numerically
           const shapes = extractUniqueValues('shape');
           const materials = extractUniqueValues('material');
 
@@ -225,7 +235,13 @@
             return products.filter(product => {
               const matchesSearch = !searchTerm || 
                 product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                product.itemNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+                product.itemNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.factory?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.volume?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.shape?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.material?.toLowerCase().includes(searchTerm.toLowerCase());
               
               const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
               const matchesFactory = selectedFactory === 'all' || product.factory === selectedFactory;
