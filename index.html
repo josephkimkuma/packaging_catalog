@@ -23,7 +23,7 @@
       .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 32px; }
       .product-card { background: white; border-radius: 8px; overflow: hidden; transition: transform 0.2s; display: flex; flex-direction: column; }
       .product-card:hover { transform: translateY(-4px); }
-      .product-image { aspect-ratio: 1; background: white; display: flex; align-items: center; justify-content: center; padding: 24px; }
+      .product-image { aspect-ratio: 1; background: white; display: flex; align-items: center; justify-content: center; padding: 20px; }
       .product-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
       .filter-group { margin-bottom: 32px; }
       .filter-group-scrollable { max-height: 200px; overflow-y: auto; margin-top: 12px; padding-right: 8px; }
@@ -37,8 +37,9 @@
       .filter-option.active { color: #000; font-weight: 600; }
       .search-box { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; font-family: 'Inter', sans-serif; }
       .search-box:focus { outline: none; border-color: #999; }
-      .product-info { padding: 16px; flex: 1; }
-      .product-name { font-size: 15px; font-weight: 600; color: #000; margin-bottom: 6px; }
+      .product-info { padding: 14px; flex: 1; }
+      .product-name { font-size: 15px; font-weight: 600; color: #000; margin-bottom: 4px; }
+      .product-component { font-size: 13px; color: #333; margin-bottom: 8px; }
       .product-meta { font-size: 12px; color: #666; line-height: 1.5; }
       .header { border-bottom: 1px solid #e5e5e5; padding: 20px 0; background: white; position: sticky; top: 0; z-index: 100; }
       .logo { font-size: 20px; font-weight: 700; color: #000; }
@@ -406,9 +407,9 @@
                           />
                         </div>
                         <div className="product-info">
-                          <div className="product-name">{p.name}</div>
+                          <div className="product-name">{p.itemNumber}</div>
+                          <div className="product-component">{p.name}</div>
                           <div className="product-meta">
-                            {p.itemNumber && <div>Item #: {p.itemNumber}</div>}
                             {p.category && <div>Category: {p.category}</div>}
                             {p.factory && <div>Factory: {p.factory}</div>}
                             {p.location && <div>Location: {p.location}</div>}
