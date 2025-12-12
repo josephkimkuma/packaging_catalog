@@ -26,6 +26,7 @@
       .dark-mode .container { background: #1a1a1a; }
       .dark-mode .header { background: #1a1a1a; border-bottom-color: #333; }
       .dark-mode .logo { color: #fff; }
+      .dark-mode .logo-login-title { color: #fff; }
       .dark-mode .logo img { filter: brightness(0) invert(1); mix-blend-mode: normal; } /* Inverts logo colors for dark mode */
       .dark-mode .logo-login img { filter: brightness(0) invert(1); mix-blend-mode: normal; }
       .dark-mode .product-card { background: #1a1a1a; border-right-color: #333; border-bottom-color: #333; }
@@ -121,10 +122,11 @@
       .product-component { font-size: 13px; color: #666; margin-bottom: 12px; }
       .product-meta { font-size: 12px; color: #999; line-height: 1.6; font-family: 'IBM Plex Mono', monospace; }
       .header { border-bottom: 1px solid #e0e0e0; padding: 18px 0; background: #fff; position: sticky; top: 0; z-index: 100; }
-      .logo { font-size: 16px; font-weight: 600; color: #000; letter-spacing: 0.5px; display: flex; align-items: center; gap: 12px; }
+      .logo { font-size: 16px; font-weight: 600; color: #000; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; font-family: 'IBM Plex Mono', monospace; text-transform: lowercase; }
       .logo img { height: 40px; width: auto; mix-blend-mode: multiply; }
-      .logo-login { display: flex; justify-content: center; margin-bottom: 24px; }
+      .logo-login { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 24px; }
       .logo-login img { height: 64px; width: auto; mix-blend-mode: multiply; }
+      .logo-login-title { font-size: 20px; font-weight: 600; color: #000; font-family: 'IBM Plex Mono', monospace; text-transform: lowercase; }
       .logout-btn { padding: 7px 14px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
       .logout-btn:hover { border-color: #999; background: #fafafa; }
       .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #fff; }
@@ -357,11 +359,14 @@
                   {CONFIG.LOGO_URL && (
                     <div className="logo-login">
                       <img src={CONFIG.LOGO_URL} alt="Logo" />
+                      <div className="logo-login-title">kumalog</div>
                     </div>
                   )}
-                  <h2 className="logo" style={{ marginBottom: '32px', justifyContent: 'center' }}>
-                    {!CONFIG.LOGO_URL && 'Kumalog'}
-                  </h2>
+                  {!CONFIG.LOGO_URL && (
+                    <h2 className="logo" style={{ marginBottom: '32px', justifyContent: 'center' }}>
+                      kumalog
+                    </h2>
+                  )}
                   <input 
                     type="password" 
                     value={password} 
@@ -391,7 +396,7 @@
                 <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div className="logo">
                     {CONFIG.LOGO_URL && <img src={CONFIG.LOGO_URL} alt="Logo" />}
-                    Kumalog
+                    kumalog
                   </div>
                   <div style={{ display: 'flex', gap: '12px' }}>
                     <button onClick={toggleDarkMode} className="dark-mode-toggle">
