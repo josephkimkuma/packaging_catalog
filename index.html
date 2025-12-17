@@ -124,17 +124,20 @@
       .product-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 40px 30px;
+        gap: 0;
       }
       
       .product-card {
         cursor: pointer;
+        border-right: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 20px;
       }
       
       .product-image-container {
         width: 100%;
         aspect-ratio: 1;
-        background: #f5f5f5;
+        background: #fff;
         margin-bottom: 12px;
         display: flex;
         align-items: center;
@@ -243,6 +246,11 @@
       
       .dark .product-image-container {
         background: #1a1a1a;
+      }
+      
+      .dark .product-card {
+        border-right-color: #333;
+        border-bottom-color: #333;
       }
       
       .dark .product-subtitle {
