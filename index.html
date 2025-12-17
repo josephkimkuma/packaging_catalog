@@ -163,6 +163,18 @@
         align-items: center;
         justify-content: center;
         overflow: hidden;
+        position: relative;
+      }
+      
+      .product-factory-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 500;
+        z-index: 10;
       }
       
       .product-image {
@@ -668,6 +680,7 @@
                     {filteredProducts.map(p => (
                       <div key={p.id} className="product-card">
                         <div className="product-image-container">
+                          {p.factory && <div className="product-factory-badge">{p.factory}</div>}
                           <img
                             src={p.image}
                             alt={p.name}
@@ -680,7 +693,6 @@
                           <div className="product-subtitle">{p.name}</div>
                           <div className="product-meta">
                             {p.category && <div>{p.category}</div>}
-                            {p.factory && <div>{p.factory}</div>}
                             {p.location && <div>{p.location}</div>}
                             {p.volume && <div>{p.volume}</div>}
                           </div>
