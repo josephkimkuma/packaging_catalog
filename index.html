@@ -168,8 +168,8 @@
       
       .product-factory-badge {
         position: absolute;
-        top: 4px;
-        left: 4px;
+        top: 8px;
+        left: 8px;
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.05em;
@@ -184,24 +184,37 @@
       }
       
       .product-info {
-        font-size: 13px;
+        font-size: 14px;
         line-height: 1.6;
       }
       
       .product-title {
-        font-weight: 500;
-        margin-bottom: 2px;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #1a1a1a;
       }
       
-      .product-subtitle {
+      .product-specs {
         color: #666;
-        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0;
+        margin-bottom: 4px;
+      }
+      
+      .product-specs > span:not(:last-child)::after {
+        content: "•";
+        margin: 0 8px;
+        color: #999;
       }
       
       .product-meta {
         font-size: 12px;
         color: #999;
         font-family: monospace;
+        margin-top: 8px;
       }
       
       .login-screen {
@@ -297,8 +310,16 @@
         border-top-color: #333;
       }
       
-      .dark .product-subtitle {
+      .dark .product-title {
+        color: #fff;
+      }
+      
+      .dark .product-specs {
         color: #999;
+      }
+      
+      .dark .product-specs > span:not(:last-child)::after {
+        color: #666;
       }
       
       .dark .product-meta {
@@ -690,12 +711,14 @@
                         </div>
                         <div className="product-info">
                           <div className="product-title">{p.itemNumber}</div>
-                          <div className="product-subtitle">{p.name}</div>
-                          <div className="product-meta">
-                            {p.category && <div>{p.category}</div>}
-                            {p.location && <div>{p.location}</div>}
-                            {p.volume && <div>{p.volume}</div>}
+                          <div className="product-specs">
+                            {p.name && <span>{p.name}</span>}
+                            {p.volume && <span>{p.volume}</span>}
+                            {p.location && <span>{p.location}</span>}
                           </div>
+                          {p.category && (
+                            <div className="product-meta">{p.category}</div>
+                          )}
                         </div>
                       </div>
                     ))}
