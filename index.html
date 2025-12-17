@@ -127,12 +127,6 @@
         padding: 0;
       }
       
-      .results-count {
-        font-size: 14px;
-        margin-bottom: 0;
-        padding: 30px 40px 20px 40px;
-      }
-      
       .product-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -253,6 +247,10 @@
       
       .dark .sidebar {
         border-right-color: #fff;
+      }
+      
+      .dark .results-count {
+        border-bottom-color: #fff;
       }
       
       .dark .search-input,
@@ -547,7 +545,9 @@
 
               <div className="container">
                 <div className="sidebar">
-                  <div className="filter-section">
+                  <div className="results-count">{filteredProducts.length} results</div>
+                  <div className="sidebar-inner">
+                    <div className="filter-section">
                     <input
                       type="text"
                       placeholder="search..."
@@ -647,9 +647,9 @@
                     </div>
                   </div>
                 </div>
+              </div>
 
                 <div className="main-content">
-                  <div className="results-count">{filteredProducts.length} results</div>
 
                   <div className="product-grid">
                     {filteredProducts.map(p => (
