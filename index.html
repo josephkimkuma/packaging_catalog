@@ -8,138 +8,259 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body, #root { background: #ffffff !important; }
-      body { 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; 
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        background: #ffffff;
-        transition: background-color 0.3s, color 0.3s;
-      }
       
-      /* Dark mode styles */
-      body.dark-mode { background: #1a1a1a !important; color: #e0e0e0; }
-      .dark-mode .container { background: #1a1a1a; }
-      .dark-mode .header { background: #1a1a1a; border-bottom-color: #333; }
-      .dark-mode .logo { color: #fff; }
-      .dark-mode .logo-login-title { color: #fff; }
-      .dark-mode .logo img { filter: brightness(0) invert(1); mix-blend-mode: normal; } /* Inverts logo colors for dark mode */
-      .dark-mode .logo-login img { filter: brightness(0) invert(1); mix-blend-mode: normal; }
-      .dark-mode .product-card { background: #1a1a1a; border-right-color: #333; border-bottom-color: #333; }
-      .dark-mode .product-card:hover { background-color: #222; }
-      .dark-mode .product-image { background: #fff; }
-      .dark-mode .product-info { background: #1a1a1a; }
-      .dark-mode .product-name { color: #fff; }
-      .dark-mode .product-component { color: #ccc; }
-      .dark-mode .product-meta { color: #999; }
-      .dark-mode .product-grid { border-top-color: #333; }
-      .dark-mode .filter-label { color: #999; }
-      .dark-mode .filter-option { color: #999; }
-      .dark-mode .filter-option:hover { color: #fff; }
-      .dark-mode .filter-option.active { color: #fff; }
-      .dark-mode .search-box { background: #222; border-color: #333; color: #fff; }
-      .dark-mode .search-box:focus { border-color: #555; }
-      .dark-mode .logout-btn, .dark-mode .refresh-btn, .dark-mode .clear-filters-btn { 
-        background: #222; 
-        border-color: #333; 
-        color: #ccc; 
-      }
-      .dark-mode .logout-btn:hover, .dark-mode .refresh-btn:hover, .dark-mode .clear-filters-btn:hover { 
-        background: #2a2a2a; 
-        border-color: #444; 
-        color: #fff; 
-      }
-      .dark-mode .results-count { color: #999; }
-      .dark-mode .filter-group-scrollable::-webkit-scrollbar-track { background: #222; }
-      .dark-mode .filter-group-scrollable::-webkit-scrollbar-thumb { background: #444; }
-      .dark-mode .sidebar-content::-webkit-scrollbar-track { background: #222; }
-      .dark-mode .sidebar-content::-webkit-scrollbar-thumb { background: #444; }
-      
-      .dark-mode-toggle {
-        padding: 7px 14px;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
         background: #fff;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 500;
-        margin-left: 10px;
-        transition: all 0.15s;
+        color: #000;
+        line-height: 1.5;
       }
-      .dark-mode-toggle:hover { border-color: #999; background: #fafafa; }
-      .dark-mode .dark-mode-toggle { background: #222; border-color: #333; color: #ccc; }
-      .dark-mode .dark-mode-toggle:hover { background: #2a2a2a; border-color: #444; color: #fff; }
       
-      .container { max-width: 100%; margin: 0 auto; padding: 0 24px; }
-      .sidebar { width: 220px; flex-shrink: 0; }
-      .sidebar-content { position: sticky; top: 100px; max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 8px; }
-      .sidebar-content::-webkit-scrollbar { width: 6px; }
-      .sidebar-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
-      .sidebar-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-      .sidebar-content::-webkit-scrollbar-thumb:hover { background: #999; }
-      .main-content { flex: 1; min-width: 0; }
-      .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0; border-top: 1px solid #e0e0e0; }
-      .product-card { 
-        border-right: 1px solid #e0e0e0;
-        border-bottom: 1px solid #e0e0e0;
-        transition: background-color 0.15s;
-        cursor: pointer;
-        background: #fff;
+      .header {
+        padding: 20px 40px;
+        border-bottom: 1px solid #000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
-      .product-card:hover { background-color: #f8f8f8; }
-      .product-image { 
-        height: 250px; 
-        background: #fff; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        padding: 20px; 
+      
+      .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      
+      .logo-img {
+        height: 32px;
+        width: auto;
+      }
+      
+      .logo-text {
+        font-size: 18px;
+        font-weight: 400;
+        letter-spacing: -0.02em;
+      }
+      
+      .header-controls {
+        display: flex;
+        gap: 20px;
+        font-size: 14px;
+      }
+      
+      .header-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        font-size: 14px;
+        text-decoration: underline;
+      }
+      
+      .container {
+        display: flex;
+        min-height: calc(100vh - 61px);
+      }
+      
+      .sidebar {
+        width: 240px;
+        border-right: 1px solid #000;
+        padding: 30px 20px;
         flex-shrink: 0;
       }
-      .product-image img { 
-        max-width: 100%; 
-        max-height: 100%; 
+      
+      .filter-section {
+        margin-bottom: 30px;
+      }
+      
+      .filter-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 12px;
+        font-weight: 500;
+      }
+      
+      .filter-options {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .filter-option {
+        font-size: 14px;
+        cursor: pointer;
+        padding: 4px 0;
+      }
+      
+      .filter-option.active {
+        text-decoration: underline;
+      }
+      
+      .search-input {
+        width: 100%;
+        padding: 8px 0;
+        border: none;
+        border-bottom: 1px solid #000;
+        font-size: 14px;
+        background: transparent;
+      }
+      
+      .search-input:focus {
+        outline: none;
+      }
+      
+      .main-content {
+        flex: 1;
+        padding: 30px 40px;
+      }
+      
+      .results-count {
+        font-size: 14px;
+        margin-bottom: 30px;
+      }
+      
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 40px 30px;
+      }
+      
+      .product-card {
+        cursor: pointer;
+      }
+      
+      .product-image-container {
+        width: 100%;
+        aspect-ratio: 1;
+        background: #f5f5f5;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      
+      .product-image {
+        max-width: 90%;
+        max-height: 90%;
         object-fit: contain;
       }
-      .filter-group { margin-bottom: 28px; }
-      .filter-group-scrollable { max-height: 200px; overflow-y: auto; margin-top: 8px; padding-right: 8px; }
-      .filter-group-scrollable::-webkit-scrollbar { width: 4px; }
-      .filter-group-scrollable::-webkit-scrollbar-track { background: #f5f5f5; border-radius: 2px; }
-      .filter-group-scrollable::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
-      .filter-group-scrollable::-webkit-scrollbar-thumb:hover { background: #ccc; }
-      .filter-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #999; margin-bottom: 8px; }
-      .filter-option { padding: 6px 0; cursor: pointer; color: #666; font-size: 14px; transition: color 0.15s; }
-      .filter-option:hover { color: #000; }
-      .filter-option.active { color: #000; font-weight: 500; }
-      .search-box { width: 100%; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; font-family: inherit; }
-      .search-box:focus { outline: none; border-color: #999; }
-      .product-info { padding: 16px; display: flex; flex-direction: column; }
-      .product-name { font-size: 13px; font-weight: 600; color: #000; margin-bottom: 4px; letter-spacing: 0.3px; }
-      .product-component { font-size: 13px; color: #666; margin-bottom: 12px; }
-      .product-meta { font-size: 12px; color: #999; line-height: 1.6; font-family: 'IBM Plex Mono', monospace; }
-      .header { border-bottom: 1px solid #e0e0e0; padding: 18px 0; background: #fff; position: sticky; top: 0; z-index: 100; }
-      .logo { font-size: 16px; font-weight: 600; color: #000; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; font-family: 'IBM Plex Mono', monospace; text-transform: lowercase; }
-      .logo img { height: 40px; width: auto; mix-blend-mode: multiply; }
-      .logo-login { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 24px; }
-      .logo-login img { height: 64px; width: auto; mix-blend-mode: multiply; }
-      .logo-login-title { font-size: 20px; font-weight: 600; color: #000; font-family: 'IBM Plex Mono', monospace; text-transform: lowercase; }
-      .logout-btn { padding: 7px 14px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
-      .logout-btn:hover { border-color: #999; background: #fafafa; }
-      .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #fff; }
-      .login-box { background: #fff; padding: 48px; border: 1px solid #e0e0e0; border-radius: 4px; max-width: 400px; width: 100%; }
-      .login-input { width: 100%; padding: 12px 14px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; margin-bottom: 16px; font-family: inherit; }
-      .login-input:focus { outline: none; border-color: #999; }
-      .login-btn { width: 100%; padding: 12px; background: #000; color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
-      .login-btn:hover { background: #333; }
-      .results-count { font-size: 13px; color: #999; margin-bottom: 20px; font-weight: 500; }
-      .clear-filters-btn { width: 100%; padding: 9px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; cursor: pointer; font-size: 12px; font-weight: 500; margin-bottom: 20px; color: #666; transition: all 0.15s; }
-      .clear-filters-btn:hover { border-color: #999; background: #fafafa; color: #000; }
-      .refresh-btn { padding: 7px 14px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; cursor: pointer; font-size: 13px; font-weight: 500; margin-left: 10px; transition: all 0.15s; }
-      .refresh-btn:hover { border-color: #999; background: #fafafa; }
+      
+      .product-info {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      
+      .product-title {
+        font-weight: 500;
+        margin-bottom: 2px;
+      }
+      
+      .product-subtitle {
+        color: #666;
+        margin-bottom: 8px;
+      }
+      
+      .product-meta {
+        font-size: 12px;
+        color: #999;
+        font-family: monospace;
+      }
+      
+      .login-screen {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 30px;
+      }
+      
+      .login-logo {
+        height: 64px;
+        width: auto;
+      }
+      
+      .login-title {
+        font-size: 24px;
+        font-weight: 400;
+        letter-spacing: -0.02em;
+      }
+      
+      .login-input {
+        width: 300px;
+        padding: 12px 0;
+        border: none;
+        border-bottom: 1px solid #000;
+        font-size: 16px;
+        text-align: center;
+        background: transparent;
+      }
+      
+      .login-input:focus {
+        outline: none;
+      }
+      
+      .login-btn {
+        background: #000;
+        color: #fff;
+        border: none;
+        padding: 12px 40px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      
+      .loading-screen {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+      }
+      
+      /* Dark mode */
+      body.dark {
+        background: #000;
+        color: #fff;
+      }
+      
+      .dark .header {
+        border-bottom-color: #fff;
+      }
+      
+      .dark .sidebar {
+        border-right-color: #fff;
+      }
+      
+      .dark .search-input,
+      .dark .login-input {
+        border-bottom-color: #fff;
+        color: #fff;
+      }
+      
+      .dark .product-image-container {
+        background: #1a1a1a;
+      }
+      
+      .dark .product-subtitle {
+        color: #999;
+      }
+      
+      .dark .product-meta {
+        color: #666;
+      }
+      
+      .dark .login-btn {
+        background: #fff;
+        color: #000;
+      }
+      
+      .dark .logo-img {
+        filter: invert(1);
+      }
     </style>
 </head>
 <body>
@@ -148,9 +269,6 @@
     <script type="text/babel">
         const { useState, useMemo, useEffect } = React;
         
-        // ============================================
-        // CONFIGURATION
-        // ============================================
         const CONFIG = {
           GOOGLE_SHEET_ID: '17loO452it-qoRcwNKp5nbZg0exuBRZt794sTOmrkwEY',
           PASSWORD: 'testck',
@@ -161,14 +279,11 @@
             'Kugil': 'kugil',
             'MYC': 'myc',
           },
-          // Add your logo URL here (can be from GitHub or any image URL)
           LOGO_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/logo.png',
-          // Sheet names/tabs to load (add all your factory sheet names here)
-          SHEET_NAMES: ['Taesung', 'Kugil', 'MYC'], // Example: ['Taesung', 'Factory B', 'Factory C']
+          SHEET_NAMES: ['Taesung', 'Kugil', 'MYC'],
         };
-        // ============================================
         
-        const PackagingCatalog = () => {
+        const Kumalog = () => {
           const [isAuthenticated, setIsAuthenticated] = useState(() => {
             const authTime = localStorage.getItem('authTime');
             if (authTime) {
@@ -195,9 +310,9 @@
 
           useEffect(() => {
             if (darkMode) {
-              document.body.classList.add('dark-mode');
+              document.body.classList.add('dark');
             } else {
-              document.body.classList.remove('dark-mode');
+              document.body.classList.remove('dark');
             }
           }, [darkMode]);
 
@@ -211,21 +326,15 @@
                 
                 let allProducts = [];
                 
-                // Load all sheets specified in CONFIG.SHEET_NAMES
                 for (const sheetName of CONFIG.SHEET_NAMES) {
                   try {
-                    // Construct URL with specific sheet name (gid parameter)
                     const sheetUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
                     
                     const response = await fetch(sheetUrl);
-                    if (!response.ok) {
-                      console.warn(`Failed to load sheet: ${sheetName}`);
-                      continue;
-                    }
+                    if (!response.ok) continue;
                     
                     const csvText = await response.text();
                     
-                    // Parse CSV using PapaParse
                     await new Promise((resolve) => {
                       Papa.parse(csvText, {
                         header: true,
@@ -258,7 +367,7 @@
                               image: imageUrl,
                               sourceSheet: sheetName
                             };
-                          }).filter(p => p.itemNumber); // Only include rows with item numbers
+                          }).filter(p => p.itemNumber);
                           
                           allProducts = [...allProducts, ...parsedProducts];
                           resolve();
@@ -301,25 +410,14 @@
             localStorage.setItem('darkMode', newMode.toString());
           };
 
-          const clearAllFilters = () => {
-            setSelectedCategory('all');
-            setSelectedFactory('all');
-            setSelectedLocation('all');
-            setSelectedVolume('all');
-            setSelectedShape('all');
-            setSelectedMaterial('all');
-            setSearchTerm('');
-          };
-
           const refreshData = () => {
             setIsAuthenticated(false);
             setTimeout(() => setIsAuthenticated(true), 100);
           };
 
-          const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
-          const factories = ['all', ...new Set(products.map(p => p.factory).filter(Boolean))];
+          const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))].sort();
+          const factories = ['all', ...new Set(products.map(p => p.factory).filter(Boolean))].sort();
           
-          // Extract all unique values from comma-separated fields
           const extractUniqueValues = (field, sortNumerically = false) => {
             const allValues = products
               .map(p => p[field])
@@ -330,7 +428,6 @@
             const uniqueValues = [...new Set(allValues)];
             
             if (sortNumerically) {
-              // Sort numerically by extracting numbers
               uniqueValues.sort((a, b) => {
                 const numA = parseFloat(a.match(/[\d.]+/)?.[0] || 0);
                 const numB = parseFloat(b.match(/[\d.]+/)?.[0] || 0);
@@ -344,7 +441,7 @@
           };
           
           const locations = extractUniqueValues('location');
-          const volumes = extractUniqueValues('volume', true); // Sort numerically
+          const volumes = extractUniqueValues('volume', true);
           const shapes = extractUniqueValues('shape');
           const materials = extractUniqueValues('material');
 
@@ -362,8 +459,6 @@
               
               const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
               const matchesFactory = selectedFactory === 'all' || product.factory === selectedFactory;
-              
-              // Check if selected value exists in comma-separated field
               const matchesLocation = selectedLocation === 'all' || 
                 product.location?.split(',').map(v => v.trim()).includes(selectedLocation);
               const matchesVolume = selectedVolume === 'all' || 
@@ -381,223 +476,183 @@
 
           if (!isAuthenticated) {
             return (
-              <div className="login-container" style={{ background: '#fff' }}>
-                <div className="login-box">
-                  {CONFIG.LOGO_URL && (
-                    <div className="logo-login">
-                      <img src={CONFIG.LOGO_URL} alt="Logo" />
-                      <div className="logo-login-title">kumalog</div>
-                    </div>
-                  )}
-                  {!CONFIG.LOGO_URL && (
-                    <h2 className="logo" style={{ marginBottom: '32px', justifyContent: 'center' }}>
-                      kumalog
-                    </h2>
-                  )}
-                  <input 
-                    type="password" 
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)}
-                    onKeyPress={e => e.key === 'Enter' && handleLogin()}
-                    placeholder="Password" 
-                    className="login-input"
-                    autoFocus 
-                  />
-                  <button onClick={handleLogin} className="login-btn">Login</button>
-                </div>
+              <div className="login-screen">
+                {CONFIG.LOGO_URL && <img src={CONFIG.LOGO_URL} alt="Logo" className="login-logo" />}
+                <div className="login-title">kumalog</div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  onKeyPress={e => e.key === 'Enter' && handleLogin()}
+                  placeholder="password"
+                  className="login-input"
+                  autoFocus
+                />
+                <button onClick={handleLogin} className="login-btn">enter</button>
               </div>
             );
           }
 
           if (loading) {
-            return (
-              <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
-                <div style={{ textAlign: 'center', color: '#666' }}>Loading...</div>
-              </div>
-            );
+            return <div className="loading-screen">loading...</div>;
           }
 
           return (
-            <div style={{ background: '#fafafa', minHeight: '100vh' }}>
+            <div>
               <div className="header">
-                <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div className="logo">
-                    {CONFIG.LOGO_URL && <img src={CONFIG.LOGO_URL} alt="Logo" />}
-                    kumalog
-                  </div>
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <button onClick={toggleDarkMode} className="dark-mode-toggle">
-                      {darkMode ? '☀️ Light' : '🌙 Dark'}
-                    </button>
-                    <button onClick={refreshData} className="refresh-btn">Refresh</button>
-                    <button onClick={() => {
-                      setIsAuthenticated(false);
-                      localStorage.removeItem('authTime');
-                    }} className="logout-btn">Logout</button>
-                  </div>
+                <div className="logo-container">
+                  {CONFIG.LOGO_URL && <img src={CONFIG.LOGO_URL} alt="Logo" className="logo-img" />}
+                  <div className="logo-text">kumalog</div>
+                </div>
+                <div className="header-controls">
+                  <button onClick={toggleDarkMode} className="header-btn">
+                    {darkMode ? 'light' : 'dark'}
+                  </button>
+                  <button onClick={refreshData} className="header-btn">refresh</button>
+                  <button onClick={() => {
+                    setIsAuthenticated(false);
+                    localStorage.removeItem('authTime');
+                  }} className="header-btn">logout</button>
                 </div>
               </div>
 
-              {error && (
-                <div className="container" style={{ marginTop: '24px' }}>
-                  <div style={{ background: '#fee', border: '1px solid #fcc', padding: '16px', borderRadius: '6px', color: '#c00' }}>
-                    {error}
-                  </div>
-                </div>
-              )}
-
-              <div className="container" style={{ display: 'flex', gap: '48px', paddingTop: '32px', paddingBottom: '64px' }}>
+              <div className="container">
                 <div className="sidebar">
-                  <div className="sidebar-content">
-                    <button onClick={clearAllFilters} className="clear-filters-btn">
-                      Clear All Filters
-                    </button>
+                  <div className="filter-section">
+                    <input
+                      type="text"
+                      placeholder="search..."
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      className="search-input"
+                    />
+                  </div>
 
-                    <div className="filter-group">
-                      <input 
-                        type="text" 
-                        placeholder="Search..." 
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        className="search-box"
-                      />
+                  <div className="filter-section">
+                    <div className="filter-title">category</div>
+                    <div className="filter-options">
+                      {categories.map(cat => (
+                        <div
+                          key={cat}
+                          className={`filter-option ${selectedCategory === cat ? 'active' : ''}`}
+                          onClick={() => setSelectedCategory(cat)}
+                        >
+                          {cat === 'all' ? 'all' : cat}
+                        </div>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="filter-group">
-                      <div className="filter-label">Category</div>
-                      <div className="filter-group-scrollable">
-                        {categories.map(cat => (
-                          <div 
-                            key={cat}
-                            className={`filter-option ${selectedCategory === cat ? 'active' : ''}`}
-                            onClick={() => setSelectedCategory(cat)}
-                          >
-                            {cat === 'all' ? 'All Categories' : cat}
-                          </div>
-                        ))}
-                      </div>
+                  <div className="filter-section">
+                    <div className="filter-title">factory</div>
+                    <div className="filter-options">
+                      {factories.map(fac => (
+                        <div
+                          key={fac}
+                          className={`filter-option ${selectedFactory === fac ? 'active' : ''}`}
+                          onClick={() => setSelectedFactory(fac)}
+                        >
+                          {fac === 'all' ? 'all' : fac}
+                        </div>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="filter-group">
-                      <div className="filter-label">Factory</div>
-                      <div className="filter-group-scrollable">
-                        {factories.map(fac => (
-                          <div 
-                            key={fac}
-                            className={`filter-option ${selectedFactory === fac ? 'active' : ''}`}
-                            onClick={() => setSelectedFactory(fac)}
-                          >
-                            {fac === 'all' ? 'All Factories' : fac}
-                          </div>
-                        ))}
-                      </div>
+                  <div className="filter-section">
+                    <div className="filter-title">location</div>
+                    <div className="filter-options" style={{maxHeight: '150px', overflowY: 'auto'}}>
+                      {locations.map(loc => (
+                        <div
+                          key={loc}
+                          className={`filter-option ${selectedLocation === loc ? 'active' : ''}`}
+                          onClick={() => setSelectedLocation(loc)}
+                        >
+                          {loc === 'all' ? 'all' : loc}
+                        </div>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="filter-group">
-                      <div className="filter-label">Location</div>
-                      <div className="filter-group-scrollable">
-                        {locations.map(loc => (
-                          <div 
-                            key={loc}
-                            className={`filter-option ${selectedLocation === loc ? 'active' : ''}`}
-                            onClick={() => setSelectedLocation(loc)}
-                          >
-                            {loc === 'all' ? 'All Locations' : loc}
-                          </div>
-                        ))}
-                      </div>
+                  <div className="filter-section">
+                    <div className="filter-title">volume</div>
+                    <div className="filter-options" style={{maxHeight: '150px', overflowY: 'auto'}}>
+                      {volumes.map(vol => (
+                        <div
+                          key={vol}
+                          className={`filter-option ${selectedVolume === vol ? 'active' : ''}`}
+                          onClick={() => setSelectedVolume(vol)}
+                        >
+                          {vol === 'all' ? 'all' : vol}
+                        </div>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="filter-group">
-                      <div className="filter-label">Volume</div>
-                      <div className="filter-group-scrollable">
-                        {volumes.map(vol => (
-                          <div 
-                            key={vol}
-                            className={`filter-option ${selectedVolume === vol ? 'active' : ''}`}
-                            onClick={() => setSelectedVolume(vol)}
-                          >
-                            {vol === 'all' ? 'All Volumes' : vol}
-                          </div>
-                        ))}
-                      </div>
+                  <div className="filter-section">
+                    <div className="filter-title">shape</div>
+                    <div className="filter-options" style={{maxHeight: '150px', overflowY: 'auto'}}>
+                      {shapes.map(shp => (
+                        <div
+                          key={shp}
+                          className={`filter-option ${selectedShape === shp ? 'active' : ''}`}
+                          onClick={() => setSelectedShape(shp)}
+                        >
+                          {shp === 'all' ? 'all' : shp}
+                        </div>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="filter-group">
-                      <div className="filter-label">Shape</div>
-                      <div className="filter-group-scrollable">
-                        {shapes.map(shp => (
-                          <div 
-                            key={shp}
-                            className={`filter-option ${selectedShape === shp ? 'active' : ''}`}
-                            onClick={() => setSelectedShape(shp)}
-                          >
-                            {shp === 'all' ? 'All Shapes' : shp}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="filter-group">
-                      <div className="filter-label">Material</div>
-                      <div className="filter-group-scrollable">
-                        {materials.map(mat => (
-                          <div 
-                            key={mat}
-                            className={`filter-option ${selectedMaterial === mat ? 'active' : ''}`}
-                            onClick={() => setSelectedMaterial(mat)}
-                          >
-                            {mat === 'all' ? 'All Materials' : mat}
-                          </div>
-                        ))}
-                      </div>
+                  <div className="filter-section">
+                    <div className="filter-title">material</div>
+                    <div className="filter-options" style={{maxHeight: '150px', overflowY: 'auto'}}>
+                      {materials.map(mat => (
+                        <div
+                          key={mat}
+                          className={`filter-option ${selectedMaterial === mat ? 'active' : ''}`}
+                          onClick={() => setSelectedMaterial(mat)}
+                        >
+                          {mat === 'all' ? 'all' : mat}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
 
                 <div className="main-content">
-                  <div className="results-count">
-                    {filteredProducts.length} {filteredProducts.length === 1 ? 'result' : 'results'}
-                  </div>
+                  <div className="results-count">{filteredProducts.length} results</div>
 
                   <div className="product-grid">
                     {filteredProducts.map(p => (
                       <div key={p.id} className="product-card">
-                        <div className="product-image">
-                          <img 
-                            src={p.image} 
+                        <div className="product-image-container">
+                          <img
+                            src={p.image}
                             alt={p.name}
+                            className="product-image"
                             onError={e => e.target.src = 'https://via.placeholder.com/400?text=No+Image'}
                           />
                         </div>
                         <div className="product-info">
-                          <div className="product-name">{p.itemNumber}</div>
-                          <div className="product-component">{p.name}</div>
+                          <div className="product-title">{p.itemNumber}</div>
+                          <div className="product-subtitle">{p.name}</div>
                           <div className="product-meta">
-                            {p.category && <div>Category: {p.category}</div>}
-                            {p.factory && <div>Factory: {p.factory}</div>}
-                            {p.location && <div>Location: {p.location}</div>}
-                            {p.volume && <div>Volume: {p.volume}</div>}
-                            {p.shape && <div>Shape: {p.shape}</div>}
-                            {p.material && <div>Material: {p.material}</div>}
+                            {p.category && <div>{p.category}</div>}
+                            {p.factory && <div>{p.factory}</div>}
+                            {p.location && <div>{p.location}</div>}
+                            {p.volume && <div>{p.volume}</div>}
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
-
-                  {filteredProducts.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '64px 0', color: '#999' }}>
-                      No products found
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
           );
         };
 
-        ReactDOM.render(<PackagingCatalog />, document.getElementById('root'));
+        ReactDOM.render(<Kumalog />, document.getElementById('root'));
     </script>
 </body>
 </html>
