@@ -289,7 +289,6 @@
           const [selectedVolume, setSelectedVolume] = useState('all');
           const [selectedShape, setSelectedShape] = useState('all');
           const [selectedMaterial, setSelectedMaterial] = useState('all');
-          const [darkMode, setDarkMode] = useState(false);
 
           useEffect(() => {
             const authTime = localStorage.getItem('authTime');
@@ -304,9 +303,80 @@
           }, []);
 
           useEffect(() => {
-            if (isAuthenticated) {
-              fetchData();
-            }
+            const loadProductsFromSheet = async () => {
+              if (!isAuthenticated) return;
+              
+              try {
+                setLoading(true);
+                
+                let allProducts = [];
+                
+                for (const sheetName of CONFIG.SHEET_NAMES) {
+                  try {
+                    const sheetUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+                    console.log(`Fetching ${sheetName} from:`, sheetUrl);
+                    
+                    const response = await fetch(sheetUrl);
+                    if (!response.ok) continue;
+                    
+                    const csvText = await response.text();
+                    
+                    await new Promise((resolve) => {
+                      Papa.parse(csvText, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: (results) => {
+                          const parsedProducts = results.data.map((row, index) => {
+                            const itemNumber = row['Item #'] || row['Item#'] || '';
+                            const factoryName = row['Factory name'] || row['Factory Name'] || '';
+                            const category = row['Category'] || '';
+                            const component = row['Component'] || '';
+                            const fillVolume = row['Fill volume'] || row['Fill Volume'] || '';
+                            const factoryLocation = row['Factory location'] || '';
+                            const shape = row['Shape'] || '';
+                            const material = row['Material'] || '';
+                            const imageValue = row['Image'] || '';
+                            
+                            const factoryFolder = CONFIG.FACTORY_FOLDERS[factoryName] || CONFIG.FACTORY_FOLDERS[factoryName.trim()] || 'default';
+                            const imageUrl = imageValue || `${CONFIG.IMAGE_BASE_URL}/${factoryFolder}/${itemNumber}${CONFIG.IMAGE_EXTENSION}`;
+                            
+                            return {
+                              id: `${sheetName}-${itemNumber || index}`,
+                              itemNumber,
+                              name: component,
+                              category,
+                              factory: factoryName,
+                              volume: fillVolume,
+                              location: factoryLocation,
+                              shape,
+                              material,
+                              image: imageUrl,
+                              sourceSheet: sheetName
+                            };
+                          }).filter(p => p.itemNumber);
+                          
+                          allProducts = [...allProducts, ...parsedProducts];
+                          console.log(`${sheetName} loaded:`, parsedProducts.length, 'products');
+                          resolve();
+                        },
+                        error: () => resolve()
+                      });
+                    });
+                  } catch (err) {
+                    console.warn(`Error loading sheet ${sheetName}:`, err);
+                  }
+                }
+                
+                console.log('Total products loaded:', allProducts.length);
+                setProducts(allProducts);
+                setLoading(false);
+              } catch (err) {
+                console.error('Error loading products:', err);
+                setLoading(false);
+              }
+            };
+            
+            loadProductsFromSheet();
           }, [isAuthenticated]);
 
           const handleLogin = () => {
@@ -317,73 +387,6 @@
               alert('incorrect password');
               setPassword('');
             }
-          };
-
-          const fetchData = async () => {
-            setLoading(true);
-            try {
-              const allProducts = [];
-              
-              for (const sheetName of CONFIG.SHEET_NAMES) {
-                const csvUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
-                console.log(`Fetching ${sheetName} data from:`, csvUrl);
-                
-                await new Promise((resolve, reject) => {
-                  Papa.parse(csvUrl, {
-                    download: true,
-                    header: true,
-                    complete: (results) => {
-                      console.log(`${sheetName} loaded:`, results.data.length, 'rows');
-                      const factoryProducts = results.data
-                        .filter(row => row.itemNumber || row['Item Number'])
-                        .map((row, index) => {
-                          const itemNumber = row.itemNumber || row['Item Number'] || '';
-                          const factory = row.factory || row['Factory'] || sheetName;
-                          const folderName = CONFIG.FACTORY_FOLDERS[factory] || factory.toLowerCase();
-                          const imageUrl = `${CONFIG.IMAGE_BASE_URL}/${folderName}/${itemNumber}${CONFIG.IMAGE_EXTENSION}`;
-                          
-                          return {
-                            id: `${sheetName}-${index}`,
-                            itemNumber: itemNumber,
-                            name: row.name || row['Name'] || '',
-                            category: row.category || row['Category'] || '',
-                            factory: factory,
-                            location: row.location || row['Location'] || '',
-                            volume: row.volume || row['Volume'] || '',
-                            shape: row.shape || row['Shape'] || '',
-                            material: row.material || row['Material'] || '',
-                            image: imageUrl
-                          };
-                        });
-                      allProducts.push(...factoryProducts);
-                      resolve();
-                    },
-                    error: (error) => {
-                      console.error(`Error loading ${sheetName}:`, error);
-                      reject(error);
-                    }
-                  });
-                });
-              }
-              
-              console.log('Total processed products:', allProducts.length);
-              setProducts(allProducts);
-              setLoading(false);
-            } catch (error) {
-              console.error('Error loading data:', error);
-              alert('Error loading catalog data. Check console for details.');
-              setLoading(false);
-            }
-          };
-
-          const refreshData = () => {
-            fetchData();
-          };
-
-          const toggleDarkMode = () => {
-            setDarkMode(!darkMode);
-            document.body.style.background = darkMode ? '#fff' : '#1a1a1a';
-            document.body.style.color = darkMode ? '#000' : '#fff';
           };
 
           const categories = useMemo(() => {
@@ -630,4 +633,4 @@
         ReactDOM.render(<Kumalog />, document.getElementById('root'));
     </script>
 </body>
-</html> 
+</html>
