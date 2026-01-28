@@ -18,18 +18,28 @@
         line-height: 1.5;
       }
       
-      .header {
-        padding: 20px 40px;
-        border-bottom: 1px solid #000;
+      .container {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        min-height: 100vh;
+      }
+      
+      .sidebar {
+        width: 240px;
+        border-right: 1px solid #000;
+        padding: 0;
+        flex-shrink: 0;
+      }
+      
+      .sidebar-header {
+        padding: 30px 20px;
+        border-bottom: 1px solid #000;
       }
       
       .logo-container {
         display: flex;
         align-items: center;
         gap: 12px;
+        margin-bottom: 0;
       }
       
       .logo-img {
@@ -41,33 +51,6 @@
         font-size: 18px;
         font-weight: 400;
         letter-spacing: -0.02em;
-      }
-      
-      .header-controls {
-        display: flex;
-        gap: 20px;
-        font-size: 14px;
-      }
-      
-      .header-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0;
-        font-size: 14px;
-        text-decoration: underline;
-      }
-      
-      .container {
-        display: flex;
-        min-height: calc(100vh - 61px);
-      }
-      
-      .sidebar {
-        width: 240px;
-        border-right: 1px solid #000;
-        padding: 0;
-        flex-shrink: 0;
       }
       
       .sidebar-inner {
@@ -233,17 +216,17 @@
       }
       
       .login-title {
-        font-size: 24px;
-        font-weight: 400;
+        font-size: 32px;
+        font-weight: 300;
         letter-spacing: -0.02em;
       }
       
       .login-input {
-        width: 300px;
         padding: 12px 0;
         border: none;
         border-bottom: 1px solid #000;
         font-size: 16px;
+        width: 240px;
         text-align: center;
         background: transparent;
       }
@@ -253,13 +236,17 @@
       }
       
       .login-btn {
+        padding: 12px 40px;
+        border: 1px solid #000;
         background: #000;
         color: #fff;
-        border: none;
-        padding: 12px 40px;
         font-size: 14px;
         cursor: pointer;
-        margin-top: 10px;
+      }
+      
+      .login-btn:hover {
+        background: #fff;
+        color: #000;
       }
       
       .loading-screen {
@@ -267,105 +254,25 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 14px;
-      }
-      
-      /* Dark mode */
-      body.dark {
-        background: #000;
-        color: #fff;
-      }
-      
-      .dark .header {
-        border-bottom-color: #fff;
-      }
-      
-      .dark .sidebar {
-        border-right-color: #fff;
-      }
-      
-      .dark .results-count {
-        border-bottom-color: #fff;
-      }
-      
-      .dark .filter-section {
-        border-bottom-color: #333;
-      }
-      
-      .dark .search-input,
-      .dark .login-input {
-        border-bottom-color: #fff;
-        color: #fff;
-      }
-      
-      .dark .product-image-container {
-        background: #1a1a1a;
-      }
-      
-      .dark .product-card {
-        border-right-color: #333;
-        border-bottom-color: #333;
-      }
-      
-      .dark .product-grid {
-        border-top-color: #333;
-      }
-      
-      .dark .product-title {
-        color: #fff;
-      }
-      
-      .dark .product-specs {
-        color: #999;
-      }
-      
-      .dark .product-specs > span:not(:last-child)::after {
-        color: #666;
-      }
-      
-      .dark .product-meta {
-        color: #666;
-      }
-      
-      .dark .login-btn {
-        background: #fff;
-        color: #000;
-      }
-      
-      .dark .logo-img {
-        filter: invert(1);
+        font-size: 16px;
       }
     </style>
 </head>
 <body>
     <div id="root"></div>
-    
     <script type="text/babel">
-        const { useState, useMemo, useEffect } = React;
-        
+        const { useState, useEffect, useMemo } = React;
+
         const CONFIG = {
-          GOOGLE_SHEET_ID: '17loO452it-qoRcwNKp5nbZg0exuBRZt794sTOmrkwEY',
-          PASSWORD: 'testck',
-          IMAGE_BASE_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/images',
-          IMAGE_EXTENSION: '.png',
-          FACTORY_FOLDERS: {
-            'Taesung': 'taesung',
-            'Kugil': 'kugil',
-            'MYC': 'myc',
-          },
-          LOGO_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/logo.png',
-          SHEET_NAMES: ['Taesung', 'Kugil', 'MYC'],
+          SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTRlsYWI-DaGvXXABFKrDfDa8mQXh-AJ-nKKQQ1AiZV2Tk6SV9H86PzX3Rz3mfcXHzPa5KnlvIHXl2P/pub?gid=0&single=true&output=csv',
+          PASSWORD_HASH: 'f3b8f12fb3f2a8a41f45c7ec5a7f72ac8f36e11d5b31d58bb1d2cd5d456b7c10',
+          LOGO_URL: 'https://raw.githubusercontent.com/josephhykim/kuma_cat/refs/heads/main/logo.png'
         };
-        
+
         const Kumalog = () => {
-          const [isAuthenticated, setIsAuthenticated] = useState(() => {
-            const authTime = localStorage.getItem('authTime');
-            if (authTime) {
-              const hoursSinceAuth = (Date.now() - parseInt(authTime)) / (1000 * 60 * 60);
-              return hoursSinceAuth < 1;
-            }
-            return false;
-          });
+          const [products, setProducts] = useState([]);
+          const [loading, setLoading] = useState(true);
+          const [isAuthenticated, setIsAuthenticated] = useState(false);
           const [password, setPassword] = useState('');
           const [searchTerm, setSearchTerm] = useState('');
           const [selectedCategory, setSelectedCategory] = useState('all');
@@ -374,131 +281,99 @@
           const [selectedVolume, setSelectedVolume] = useState('all');
           const [selectedShape, setSelectedShape] = useState('all');
           const [selectedMaterial, setSelectedMaterial] = useState('all');
-          const [products, setProducts] = useState([]);
-          const [loading, setLoading] = useState(true);
-          const [error, setError] = useState('');
-          const [darkMode, setDarkMode] = useState(() => {
-            const saved = localStorage.getItem('darkMode');
-            return saved === 'true';
-          });
+          const [darkMode, setDarkMode] = useState(false);
 
           useEffect(() => {
-            if (darkMode) {
-              document.body.classList.add('dark');
-            } else {
-              document.body.classList.remove('dark');
-            }
-          }, [darkMode]);
-
-          useEffect(() => {
-            const loadProductsFromSheet = async () => {
-              if (!isAuthenticated) return;
-              
-              try {
-                setLoading(true);
-                setError('');
-                
-                let allProducts = [];
-                
-                for (const sheetName of CONFIG.SHEET_NAMES) {
-                  try {
-                    const sheetUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-                    
-                    const response = await fetch(sheetUrl);
-                    if (!response.ok) continue;
-                    
-                    const csvText = await response.text();
-                    
-                    await new Promise((resolve) => {
-                      Papa.parse(csvText, {
-                        header: true,
-                        skipEmptyLines: true,
-                        complete: (results) => {
-                          const parsedProducts = results.data.map((row, index) => {
-                            const itemNumber = row['Item #'] || row['Item#'] || '';
-                            const factoryName = row['Factory name'] || row['Factory Name'] || '';
-                            const category = row['Category'] || '';
-                            const component = row['Component'] || '';
-                            const fillVolume = row['Fill volume'] || row['Fill Volume'] || '';
-                            const factoryLocation = row['Factory location'] || '';
-                            const shape = row['Shape'] || '';
-                            const material = row['Material'] || '';
-                            const imageValue = row['Image'] || '';
-                            
-                            const factoryFolder = CONFIG.FACTORY_FOLDERS[factoryName] || CONFIG.FACTORY_FOLDERS[factoryName.trim()] || 'default';
-                            const imageUrl = imageValue || `${CONFIG.IMAGE_BASE_URL}/${factoryFolder}/${itemNumber}${CONFIG.IMAGE_EXTENSION}`;
-                            
-                            return {
-                              id: `${sheetName}-${itemNumber || index}`,
-                              itemNumber,
-                              name: component,
-                              category,
-                              factory: factoryName,
-                              volume: fillVolume,
-                              location: factoryLocation,
-                              shape,
-                              material,
-                              image: imageUrl,
-                              sourceSheet: sheetName
-                            };
-                          }).filter(p => p.itemNumber);
-                          
-                          allProducts = [...allProducts, ...parsedProducts];
-                          resolve();
-                        },
-                        error: () => resolve()
-                      });
-                    });
-                  } catch (err) {
-                    console.warn(`Error loading sheet ${sheetName}:`, err);
-                  }
-                }
-                
-                setProducts(allProducts);
-                setError('');
-              } catch (err) {
-                setError(err.message);
-                setProducts([]);
-              } finally {
-                setLoading(false);
+            const authTime = localStorage.getItem('authTime');
+            if (authTime) {
+              const hoursSinceAuth = (Date.now() - parseInt(authTime)) / (1000 * 60 * 60);
+              if (hoursSinceAuth < 24) {
+                setIsAuthenticated(true);
+              } else {
+                localStorage.removeItem('authTime');
               }
-            };
+            }
+          }, []);
 
-            if (isAuthenticated) loadProductsFromSheet();
+          useEffect(() => {
+            if (isAuthenticated) {
+              fetchData();
+            }
           }, [isAuthenticated]);
 
-          const handleLogin = () => {
-            if (password.trim() === CONFIG.PASSWORD) {
+          const hashPassword = async (pwd) => {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(pwd);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+          };
+
+          const handleLogin = async () => {
+            const hash = await hashPassword(password);
+            if (hash === CONFIG.PASSWORD_HASH) {
               setIsAuthenticated(true);
               localStorage.setItem('authTime', Date.now().toString());
-              setPassword('');
             } else {
-              alert('Incorrect password');
+              alert('incorrect password');
               setPassword('');
             }
           };
 
-          const toggleDarkMode = () => {
-            const newMode = !darkMode;
-            setDarkMode(newMode);
-            localStorage.setItem('darkMode', newMode.toString());
+          const fetchData = () => {
+            setLoading(true);
+            Papa.parse(CONFIG.SHEET_URL, {
+              download: true,
+              header: true,
+              complete: (results) => {
+                const processedData = results.data
+                  .filter(row => row.itemNumber)
+                  .map((row, index) => ({
+                    id: index,
+                    itemNumber: row.itemNumber || '',
+                    name: row.name || '',
+                    category: row.category || '',
+                    factory: row.factory || '',
+                    location: row.location || '',
+                    volume: row.volume || '',
+                    shape: row.shape || '',
+                    material: row.material || '',
+                    image: row.image || ''
+                  }));
+                setProducts(processedData);
+                setLoading(false);
+              },
+              error: (error) => {
+                console.error('Error loading data:', error);
+                setLoading(false);
+              }
+            });
           };
 
           const refreshData = () => {
-            setIsAuthenticated(false);
-            setTimeout(() => setIsAuthenticated(true), 100);
+            fetchData();
           };
 
-          const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))].sort();
-          const factories = ['all', ...new Set(products.map(p => p.factory).filter(Boolean))].sort();
+          const toggleDarkMode = () => {
+            setDarkMode(!darkMode);
+            document.body.style.background = darkMode ? '#fff' : '#1a1a1a';
+            document.body.style.color = darkMode ? '#000' : '#fff';
+          };
+
+          const categories = useMemo(() => {
+            const uniqueCategories = [...new Set(products.map(p => p.category).filter(Boolean))];
+            return ['all', ...uniqueCategories.sort()];
+          }, [products]);
+
+          const factories = useMemo(() => {
+            const uniqueFactories = [...new Set(products.map(p => p.factory).filter(Boolean))];
+            return ['all', ...uniqueFactories.sort()];
+          }, [products]);
           
           const extractUniqueValues = (field, sortNumerically = false) => {
             const allValues = products
-              .map(p => p[field])
-              .filter(Boolean)
-              .flatMap(val => val.split(',').map(v => v.trim()))
+              .flatMap(p => p[field]?.split(',').map(v => v.trim()) || [])
               .filter(Boolean);
-            
             const uniqueValues = [...new Set(allValues)];
             
             if (sortNumerically) {
@@ -572,29 +447,19 @@
           }
 
           return (
-            <div>
-              <div className="header">
-                <div className="logo-container">
-                  {CONFIG.LOGO_URL && <img src={CONFIG.LOGO_URL} alt="Logo" className="logo-img" />}
-                  <div className="logo-text">kumalog</div>
+            <div className="container">
+              <div className="sidebar">
+                <div className="sidebar-header">
+                  <div className="logo-container">
+                    {CONFIG.LOGO_URL && <img src={CONFIG.LOGO_URL} alt="Logo" className="logo-img" />}
+                    <div className="logo-text">kumalog</div>
+                  </div>
                 </div>
-                <div className="header-controls">
-                  <button onClick={toggleDarkMode} className="header-btn">
-                    {darkMode ? 'light' : 'dark'}
-                  </button>
-                  <button onClick={refreshData} className="header-btn">refresh</button>
-                  <button onClick={() => {
-                    setIsAuthenticated(false);
-                    localStorage.removeItem('authTime');
-                  }} className="header-btn">logout</button>
-                </div>
-              </div>
-
-              <div className="container">
-                <div className="sidebar">
-                  <div className="results-count">{filteredProducts.length} results</div>
-                  <div className="sidebar-inner">
-                    <div className="filter-section">
+                
+                <div className="results-count">{filteredProducts.length} results</div>
+                
+                <div className="sidebar-inner">
+                  <div className="filter-section">
                     <input
                       type="text"
                       placeholder="search..."
@@ -696,34 +561,32 @@
                 </div>
               </div>
 
-                <div className="main-content">
-
-                  <div className="product-grid">
-                    {filteredProducts.map(p => (
-                      <div key={p.id} className="product-card">
-                        <div className="product-image-container">
-                          {p.factory && <div className="product-factory-badge">{p.factory}</div>}
-                          <img
-                            src={p.image}
-                            alt={p.name}
-                            className="product-image"
-                            onError={e => e.target.src = 'https://via.placeholder.com/400?text=No+Image'}
-                          />
-                        </div>
-                        <div className="product-info">
-                          <div className="product-title">{p.itemNumber}</div>
-                          <div className="product-specs">
-                            {p.name && <span>{p.name}</span>}
-                            {p.volume && <span>{p.volume}</span>}
-                            {p.location && <span>{p.location}</span>}
-                          </div>
-                          {p.category && (
-                            <div className="product-meta">{p.category}</div>
-                          )}
-                        </div>
+              <div className="main-content">
+                <div className="product-grid">
+                  {filteredProducts.map(p => (
+                    <div key={p.id} className="product-card">
+                      <div className="product-image-container">
+                        {p.factory && <div className="product-factory-badge">{p.factory}</div>}
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          className="product-image"
+                          onError={e => e.target.src = 'https://via.placeholder.com/400?text=No+Image'}
+                        />
                       </div>
-                    ))}
-                  </div>
+                      <div className="product-info">
+                        <div className="product-title">{p.itemNumber}</div>
+                        <div className="product-specs">
+                          {p.name && <span>{p.name}</span>}
+                          {p.volume && <span>{p.volume}</span>}
+                          {p.location && <span>{p.location}</span>}
+                        </div>
+                        {p.category && (
+                          <div className="product-meta">{p.category}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
