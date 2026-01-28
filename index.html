@@ -264,9 +264,17 @@
         const { useState, useEffect, useMemo } = React;
 
         const CONFIG = {
-          SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTRlsYWI-DaGvXXABFKrDfDa8mQXh-AJ-nKKQQ1AiZV2Tk6SV9H86PzX3Rz3mfcXHzPa5KnlvIHXl2P/pub?gid=0&single=true&output=csv',
-          PASSWORD_HASH: 'f3b8f12fb3f2a8a41f45c7ec5a7f72ac8f36e11d5b31d58bb1d2cd5d456b7c10',
-          LOGO_URL: 'https://raw.githubusercontent.com/josephhykim/kuma_cat/refs/heads/main/logo.png'
+          GOOGLE_SHEET_ID: '17loO452it-qoRcwNKp5nbZg0exuBRZt794sTOmrkwEY',
+          PASSWORD: 'testck',
+          IMAGE_BASE_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/images',
+          IMAGE_EXTENSION: '.png',
+          FACTORY_FOLDERS: {
+            'Taesung': 'taesung',
+            'Kugil': 'kugil',
+            'MYC': 'myc',
+          },
+          LOGO_URL: 'https://raw.githubusercontent.com/josephkimkuma/packaging_catalog/main/logo.png',
+          SHEET_NAMES: ['Taesung', 'Kugil', 'MYC'],
         };
 
         const Kumalog = () => {
@@ -301,17 +309,8 @@
             }
           }, [isAuthenticated]);
 
-          const hashPassword = async (pwd) => {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(pwd);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-          };
-
-          const handleLogin = async () => {
-            const hash = await hashPassword(password);
-            if (hash === CONFIG.PASSWORD_HASH) {
+          const handleLogin = () => {
+            if (password === CONFIG.PASSWORD) {
               setIsAuthenticated(true);
               localStorage.setItem('authTime', Date.now().toString());
             } else {
@@ -320,38 +319,61 @@
             }
           };
 
-          const fetchData = () => {
+          const fetchData = async () => {
             setLoading(true);
-            console.log('Fetching data from:', CONFIG.SHEET_URL);
-            Papa.parse(CONFIG.SHEET_URL, {
-              download: true,
-              header: true,
-              complete: (results) => {
-                console.log('Data loaded:', results.data.length, 'rows');
-                const processedData = results.data
-                  .filter(row => row.itemNumber)
-                  .map((row, index) => ({
-                    id: index,
-                    itemNumber: row.itemNumber || '',
-                    name: row.name || '',
-                    category: row.category || '',
-                    factory: row.factory || '',
-                    location: row.location || '',
-                    volume: row.volume || '',
-                    shape: row.shape || '',
-                    material: row.material || '',
-                    image: row.image || ''
-                  }));
-                console.log('Processed products:', processedData.length);
-                setProducts(processedData);
-                setLoading(false);
-              },
-              error: (error) => {
-                console.error('Error loading data:', error);
-                alert('Error loading catalog data. Check console for details.');
-                setLoading(false);
+            try {
+              const allProducts = [];
+              
+              for (const sheetName of CONFIG.SHEET_NAMES) {
+                const csvUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+                console.log(`Fetching ${sheetName} data from:`, csvUrl);
+                
+                await new Promise((resolve, reject) => {
+                  Papa.parse(csvUrl, {
+                    download: true,
+                    header: true,
+                    complete: (results) => {
+                      console.log(`${sheetName} loaded:`, results.data.length, 'rows');
+                      const factoryProducts = results.data
+                        .filter(row => row.itemNumber || row['Item Number'])
+                        .map((row, index) => {
+                          const itemNumber = row.itemNumber || row['Item Number'] || '';
+                          const factory = row.factory || row['Factory'] || sheetName;
+                          const folderName = CONFIG.FACTORY_FOLDERS[factory] || factory.toLowerCase();
+                          const imageUrl = `${CONFIG.IMAGE_BASE_URL}/${folderName}/${itemNumber}${CONFIG.IMAGE_EXTENSION}`;
+                          
+                          return {
+                            id: `${sheetName}-${index}`,
+                            itemNumber: itemNumber,
+                            name: row.name || row['Name'] || '',
+                            category: row.category || row['Category'] || '',
+                            factory: factory,
+                            location: row.location || row['Location'] || '',
+                            volume: row.volume || row['Volume'] || '',
+                            shape: row.shape || row['Shape'] || '',
+                            material: row.material || row['Material'] || '',
+                            image: imageUrl
+                          };
+                        });
+                      allProducts.push(...factoryProducts);
+                      resolve();
+                    },
+                    error: (error) => {
+                      console.error(`Error loading ${sheetName}:`, error);
+                      reject(error);
+                    }
+                  });
+                });
               }
-            });
+              
+              console.log('Total processed products:', allProducts.length);
+              setProducts(allProducts);
+              setLoading(false);
+            } catch (error) {
+              console.error('Error loading data:', error);
+              alert('Error loading catalog data. Check console for details.');
+              setLoading(false);
+            }
           };
 
           const refreshData = () => {
