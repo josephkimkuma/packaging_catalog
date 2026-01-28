@@ -322,10 +322,12 @@
 
           const fetchData = () => {
             setLoading(true);
+            console.log('Fetching data from:', CONFIG.SHEET_URL);
             Papa.parse(CONFIG.SHEET_URL, {
               download: true,
               header: true,
               complete: (results) => {
+                console.log('Data loaded:', results.data.length, 'rows');
                 const processedData = results.data
                   .filter(row => row.itemNumber)
                   .map((row, index) => ({
@@ -340,11 +342,13 @@
                     material: row.material || '',
                     image: row.image || ''
                   }));
+                console.log('Processed products:', processedData.length);
                 setProducts(processedData);
                 setLoading(false);
               },
               error: (error) => {
                 console.error('Error loading data:', error);
+                alert('Error loading catalog data. Check console for details.');
                 setLoading(false);
               }
             });
@@ -451,7 +455,15 @@
               <div className="sidebar">
                 <div className="sidebar-header">
                   <div className="logo-container">
-                    {CONFIG.LOGO_URL && <img src={CONFIG.LOGO_URL} alt="Logo" className="logo-img" />}
+                    {CONFIG.LOGO_URL && <img 
+                      src={CONFIG.LOGO_URL} 
+                      alt="Logo" 
+                      className="logo-img"
+                      onError={(e) => {
+                        console.error('Logo failed to load:', CONFIG.LOGO_URL);
+                        e.target.style.display = 'none';
+                      }}
+                    />}
                     <div className="logo-text">kumalog</div>
                   </div>
                 </div>
